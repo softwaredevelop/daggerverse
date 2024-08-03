@@ -1,7 +1,7 @@
 ---
-name: Editorconfig-checker
+name: editorconfig-checker
 
-run-name: editorconfig-checker
+run-name: Editorconfig-checker
 
 on:
   pull_request:
