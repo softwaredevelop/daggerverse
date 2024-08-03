@@ -1,7 +1,7 @@
 ---
-name: Actionlint
+name: actionlint
 
-run-name: actionlint
+run-name: Actionlint
 
 on:
   pull_request:
