@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - "main"
+    paths:
+      - "**/*.go"
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
