@@ -16,3 +16,8 @@ indent_size = 2
 
 [*.{go,mod,sum}]
 indent_style = tab
+
+[*.json]
+indent_size = 2
+
+[LICENSE]
