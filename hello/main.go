@@ -13,20 +13,54 @@
 // if appropriate. All modules should have a short description.
 package main
 
-// Hello is a struct that provides echo functions.
-type Hello struct{}
+import (
+	"context"
+	"dagger/hello/internal/dagger"
+)
 
-// Echo echoes the given string argument.
-//
-// Parameters:
-//   - stringArg: A string argument to be echoed.
-//
-// Returns:
-//   - The echoed string.
-func (m *Hello) Echo(
-	// A string argument to be echoed
+// New creates a new instance of the Hello struct.
+// If the ctr parameter is nil, it will create a new dagger.Container using the "busybox:uclibc" image.
+// The stringArg parameter is an optional argument that specifies a string value.
+// If not provided, it will default to "Hello, Daggerverse!".
+// The function returns a pointer to the created Hello struct.
+func New(
+	// ctr is an optional argument that specifies a container.
+	// +optional
+	ctr *dagger.Container,
+	// stringArg is an optional argument that specifies a string value.
+	// +optional
 	// +default="Hello, Daggerverse!"
 	stringArg string,
+) *Hello {
+	if ctr == nil {
+		ctr = dag.Container().
+			From("busybox:uclibc")
+	}
+	return &Hello{
+		Ctr:       *ctr,
+		StringArg: stringArg,
+	}
+}
+
+// Hello is a struct that provides echo functions.
+type Hello struct {
+	Ctr       dagger.Container
+	StringArg string
+}
+
+// HelloString returns the string value provided to the Hello struct.
+func (m *Hello) HelloString(
+	ctx context.Context,
 ) string {
-	return stringArg
+	return m.StringArg
+}
+
+// HelloContainer executes a container with the provided string value.
+func (m *Hello) HelloContainer(
+	ctx context.Context,
+) (string, error) {
+	return dag.Container().
+		From("cgr.dev/chainguard/wolfi-base:latest").
+		WithExec([]string{"echo", m.StringArg}).
+		Stdout(ctx)
 }
