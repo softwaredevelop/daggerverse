@@ -29,7 +29,7 @@ func Test_Hello(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	t.Run("Test_hellocontainer_function", func(t *testing.T) {
+	t.Run("Test_hello_container", func(t *testing.T) {
 		t.Parallel()
 		stringArg := "Hello, Daggerverse!"
 		out, err := c.Container().
