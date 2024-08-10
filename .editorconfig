@@ -20,4 +20,5 @@ indent_style = tab
 [dagger.json]
 indent_size = 2
 
-[LICENSE]
+[.ecrc]
+indent_size = 2
