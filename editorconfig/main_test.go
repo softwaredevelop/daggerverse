@@ -32,7 +32,7 @@ func Test_Editorconfig(t *testing.T) {
 
 	t.Run("Test_mounted_host_directory_without_git_directory", func(t *testing.T) {
 		t.Parallel()
-		container := ec(c)
+		container := base(c)
 		require.NotNil(t, container)
 
 		dir, err := os.Getwd()
@@ -51,20 +51,30 @@ func Test_Editorconfig(t *testing.T) {
 	})
 	t.Run("Test_mounted_host_directory", func(t *testing.T) {
 		t.Parallel()
-		container := ec(c)
+		container := base(c)
 		require.NotNil(t, container)
 
 		out, err := container.
-			WithMountedDirectory("/tmp", c.Host().Directory(".")).
+			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"/editorconfig-checker", "-dry-run"}).
 			Stdout(ctx)
 		require.NoError(t, err)
-		require.NotNil(t, out)
+		require.Contains(t, out, "t.txt")
+	})
+	t.Run("Test_editorconfig_checker_help", func(t *testing.T) {
+		t.Parallel()
+		container := base(c)
+		require.NotNil(t, container)
+
+		_, err := container.
+			WithExec([]string{"/editorconfig-checker", "-help"}).
+			Stdout(ctx)
+		require.NoError(t, err)
 	})
 }
 
-func ec(c *dagger.Client) *dagger.Container {
+func base(c *dagger.Client) *dagger.Container {
 	install := c.
 		Container().
 		From("golang:alpine").
