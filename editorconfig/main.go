@@ -24,15 +24,18 @@ type Editorconfig struct{}
 func (m *Editorconfig) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
+	// excludeDirectoryPattern is an optional argument that specifies a pattern to exclude directories.
+	// +default=".git"
+	excludeDirectoryPattern string,
 ) *dagger.Container {
-	return ec().
-		WithMountedDirectory("/tmp", source).
+	return base().
+		WithMountedDirectory("/tmp", source.WithoutDirectory(excludeDirectoryPattern)).
 		WithWorkdir("/tmp").
 		WithExec([]string{"/editorconfig-checker"})
 }
 
-// ec returns a container with the editorconfig-checker binary installed.
-func ec() *dagger.Container {
+// base returns a container with the editorconfig-checker binary installed.
+func base() *dagger.Container {
 	install := dag.
 		Container().
 		From("golang:alpine").
