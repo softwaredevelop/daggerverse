@@ -1,0 +1,12 @@
+{
+  "name": "shellcheck/test",
+  "sdk": "go",
+  "dependencies": [
+    {
+      "name": "shellcheck",
+      "source": ".."
+    }
+  ],
+  "source": ".",
+  "engineVersion": "v0.12.3"
+}
