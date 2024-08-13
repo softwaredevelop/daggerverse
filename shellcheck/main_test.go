@@ -40,7 +40,6 @@ func Test_Shellcheck(t *testing.T) {
 			WithExec([]string{"sh", "-c", "find . -type f -name '*.sh' -print0 | xargs -0 shellcheck"}).
 			Stdout(ctx)
 		require.Error(t, err)
-		// require.Contains(t, err.Error(), "SC2283")
 		errorIDs := []string{"SC2283", "SC2154", "SC2086"}
 		for _, id := range errorIDs {
 			require.Contains(t, err.Error(), id)
