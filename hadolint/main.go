@@ -35,7 +35,7 @@ func (m *Hadolint) CheckWithConfig(
 }
 
 // CheckWithoutConfig runs the hadolint-checker command.
-func (m *Hadolint) CheckWithoutConfig(
+func (m *Hadolint) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
