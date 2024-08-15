@@ -37,7 +37,6 @@ func Test_Hadolint(t *testing.T) {
 		_, err := container.
 			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata")).
 			WithWorkdir("/tmp").
-			// WithMountedFile("/.config/.hadolint.yaml", c.Host().Directory("./test/testdata").File(".config/hadolint.yaml")).
 			WithMountedFile("/.config/.hadolint.yaml", c.Host().File("./test/testdata/.config/.hadolint.yaml")).
 			WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"}).
 			Stdout(ctx)

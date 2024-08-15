@@ -28,7 +28,7 @@ func (m *Hadolinttest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
 	p.Go(m.CheckWithConfig)
-	p.Go(m.CheckWithoutConfig)
+	p.Go(m.Check)
 
 	return p.Wait()
 }
@@ -59,11 +59,11 @@ func (m *Hadolinttest) CheckWithConfig(ctx context.Context) error {
 	return nil
 }
 
-// CheckWithoutConfig runs the hadolint-checker command.
-func (m *Hadolinttest) CheckWithoutConfig(ctx context.Context) error {
+// Check runs the hadolint-checker command.
+func (m *Hadolinttest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Hadolint().CheckWithoutConfig(dir).Stdout(ctx)
+	_, err := dag.Hadolint().Check(dir).Stdout(ctx)
 
 	if err != nil {
 		errorIDs := []string{"DL3006", "DL3008", "DL3015", "DL3014"}

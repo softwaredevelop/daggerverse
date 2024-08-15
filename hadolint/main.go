@@ -34,8 +34,8 @@ func (m *Hadolint) CheckWithConfig(
 		WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"})
 }
 
-// CheckWithoutConfig runs the hadolint-checker command.
-func (m *Hadolint) CheckWithoutConfig(
+// Check runs the hadolint-checker command.
+func (m *Hadolint) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
