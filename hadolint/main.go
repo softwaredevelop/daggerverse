@@ -20,6 +20,20 @@ import (
 // Hadolint is a module for checking Dockerfiles.
 type Hadolint struct{}
 
+// CheckWithConfig runs the hadolint-checker command with a configuration file.
+func (m *Hadolint) CheckWithConfig(
+	// source is an optional argument that specifies a directory.
+	source *dagger.Directory,
+	// file is an optional argument that specifies hadolint configuration file.
+	file *dagger.File,
+) *dagger.Container {
+	return base().
+		WithMountedDirectory("/tmp", source).
+		WithWorkdir("/tmp").
+		WithFile("/.config/.hadolint.yaml", file).
+		WithExec([]string{"sh", "-c", "find . -type f \\( -name Dockerfile -o -name Dockerfile.* \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"})
+}
+
 // CheckWithoutConfig runs the hadolint-checker command.
 func (m *Hadolint) CheckWithoutConfig(
 	// source is an optional argument that specifies a directory.
