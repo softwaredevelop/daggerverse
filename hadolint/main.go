@@ -31,7 +31,7 @@ func (m *Hadolint) CheckWithConfig(
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithFile("/.config/.hadolint.yaml", file).
-		WithExec([]string{"sh", "-c", "find . -type f \\( -name Dockerfile -o -name Dockerfile.* \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"})
+		WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"})
 }
 
 // CheckWithoutConfig runs the hadolint-checker command.
@@ -42,7 +42,7 @@ func (m *Hadolint) CheckWithoutConfig(
 	return base().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
-		WithExec([]string{"sh", "-c", "find . -type f \\( -name Dockerfile -o -name Dockerfile.* \\) -print0 | xargs -0 hadolint"})
+		WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint"})
 }
 
 // base returns a container with the hadolint binary installed.

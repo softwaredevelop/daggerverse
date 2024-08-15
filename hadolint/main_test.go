@@ -39,7 +39,7 @@ func Test_Hadolint(t *testing.T) {
 			WithWorkdir("/tmp").
 			// WithMountedFile("/.config/.hadolint.yaml", c.Host().Directory("./test/testdata").File(".config/hadolint.yaml")).
 			WithMountedFile("/.config/.hadolint.yaml", c.Host().File("./test/testdata/.config/.hadolint.yaml")).
-			WithExec([]string{"sh", "-c", "find . -type f \\( -name Dockerfile -o -name Dockerfile.* \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"}).
+			WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"}).
 			Stdout(ctx)
 		require.Error(t, err)
 		errorIDs := []string{"DL3006", "DL3008"}
@@ -59,7 +59,7 @@ func Test_Hadolint(t *testing.T) {
 		_, err := container.
 			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata")).
 			WithWorkdir("/tmp").
-			WithExec([]string{"sh", "-c", "find . -type f \\( -name Dockerfile -o -name Dockerfile.* \\) -print0 | xargs -0 hadolint"}).
+			WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint"}).
 			Stdout(ctx)
 		require.Error(t, err)
 		errorIDs := []string{"DL3006", "DL3008"}
@@ -81,7 +81,7 @@ func Test_Hadolint(t *testing.T) {
 				"Dockerfile.test",
 				"FROM docker.io/library/alpine:latest",
 			).
-			WithExec([]string{"sh", "-c", "find . -type f \\( -name Dockerfile -o -name Dockerfile.* \\) -print0 | xargs -0 hadolint"}).
+			WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint"}).
 			Stdout(ctx)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "DL3007")
