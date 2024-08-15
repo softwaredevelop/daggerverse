@@ -1,1 +1,2 @@
-FROM docker.io/library/alpine:latest
+FROM baseImage
+RUN apt-get install hadolint
