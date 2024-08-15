@@ -27,9 +27,36 @@ type Hadolinttest struct{}
 func (m *Hadolinttest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
+	p.Go(m.CheckWithConfig)
 	p.Go(m.CheckWithoutConfig)
 
 	return p.Wait()
+}
+
+// CheckWithConfig runs the hadolint-checker command with a configuration file.
+func (m *Hadolinttest) CheckWithConfig(ctx context.Context) error {
+
+	dir := dag.CurrentModule().Source().Directory("./testdata")
+	file := dag.CurrentModule().Source().File("./testdata/.config/.hadolint.yaml")
+	_, err := dag.Hadolint().CheckWithConfig(dir, file).Stdout(ctx)
+
+	if err != nil {
+		errorIDs := []string{"DL3006", "DL3008"}
+		for _, id := range errorIDs {
+			if !strings.Contains(err.Error(), id) {
+				return err
+			}
+		}
+
+		errorIDs = []string{"DL3015", "DL3014"}
+		for _, id := range errorIDs {
+			if strings.Contains(err.Error(), id) {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // CheckWithoutConfig runs the hadolint-checker command.
@@ -39,8 +66,11 @@ func (m *Hadolinttest) CheckWithoutConfig(ctx context.Context) error {
 	_, err := dag.Hadolint().CheckWithoutConfig(dir).Stdout(ctx)
 
 	if err != nil {
-		if !strings.Contains(err.Error(), "DL3007") {
-			return err
+		errorIDs := []string{"DL3006", "DL3008", "DL3015", "DL3014"}
+		for _, id := range errorIDs {
+			if !strings.Contains(err.Error(), id) {
+				return err
+			}
 		}
 	}
 
