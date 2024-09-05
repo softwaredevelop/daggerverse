@@ -2,5 +2,5 @@
   "name": "revive",
   "sdk": "go",
   "source": ".",
-  "engineVersion": "v0.12.6"
+  "engineVersion": "v0.12.7"
 }
