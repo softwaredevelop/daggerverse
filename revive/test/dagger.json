@@ -1,12 +1,13 @@
 {
   "name": "revive/test",
+  "engineVersion": "v0.14.0",
   "sdk": "go",
   "dependencies": [
     {
       "name": "revive",
-      "source": ".."
+      "source": "..",
+      "pin": ""
     }
   ],
-  "source": ".",
-  "engineVersion": "v0.12.7"
+  "source": "."
 }

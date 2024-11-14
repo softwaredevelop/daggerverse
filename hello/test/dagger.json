@@ -1,12 +1,13 @@
 {
   "name": "test",
+  "engineVersion": "v0.14.0",
   "sdk": "go",
   "dependencies": [
     {
       "name": "hello",
-      "source": ".."
+      "source": "..",
+      "pin": ""
     }
   ],
-  "source": ".",
-  "engineVersion": "v0.12.7"
+  "source": "."
 }
