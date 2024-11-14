@@ -51,7 +51,7 @@ jobs:
           conditionals-with-values: |
             ${{ matrix.module == 'gh' }} => --github-token env:GITHUB_TOKEN
 
-      - name: Dagger Test
+      - name: Test Dagger module
         uses: dagger/dagger-for-github@v6
         with:
           verb: call
