@@ -41,9 +41,9 @@ func (m *Rufftest) CheckWithConfig(ctx context.Context) error {
 	_, err := dag.Ruff().CheckWithConfig(dir, file).Stdout(ctx)
 
 	if err != nil {
-		errorIDs := []string{"F401"}
+		errorIDs := []string{"F821"}
 		for _, id := range errorIDs {
-			if strings.Contains(err.Error(), id) {
+			if !strings.Contains(err.Error(), id) {
 				return err
 			}
 		}
