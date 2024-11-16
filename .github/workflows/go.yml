@@ -28,6 +28,18 @@ jobs:
   go:
     name: Go
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - actionlint
+          - editorconfig
+          - hadolint
+          - hello
+          - ruff
+          - shellcheck
+          - yamllint
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,3 +55,8 @@ jobs:
         run: |
           go install github.com/mgechev/revive@latest
           find . -type f -name '*.go' -not -path '*/internal/*' -not -path '*/testdata/*' -print0 | xargs -0 revive -config .revive.toml
+
+      - name: Go Test
+        run: |
+          go test -v main_test.go
+        working-directory: ./${{ matrix.module }}
