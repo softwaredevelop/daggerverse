@@ -61,3 +61,32 @@ jobs:
           version: latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  go_test:
+    name: Go Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - actionlint
+          - editorconfig
+          - hadolint
+          - hello
+          - ruff
+          - shellcheck
+          - yamllint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go latest
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Test Go module
+        run: go test -v ./github.com/${{ github.repository }}/${{ matrix.module }}/main_test.go
