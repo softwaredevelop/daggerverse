@@ -40,7 +40,8 @@ func Test_Ruff(t *testing.T) {
 			WithMountedFile("/.config/.ruff.toml", c.Host().File("./test/testdata/.config/.ruff.toml")).
 			WithExec([]string{"/ruff", "check", "--config", "/.config/.ruff.toml"}).
 			Stdout(ctx)
-		require.NoError(t, err)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "F821")
 	})
 	t.Run("Test_ruff_host_directory_check_file_error", func(t *testing.T) {
 		t.Parallel()
