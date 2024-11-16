@@ -1,1 +1,3 @@
-ignore = ["F401"]
+lint.ignore = ["F401"]
+
+include = ["**/*.py", "**/*.ipynb"]
