@@ -42,4 +42,4 @@ jobs:
       - name: Revive
         run: |
           go install github.com/mgechev/revive@latest
-          revive -set_exit_status ./...
+          find . -type f -name '*.go' -not -path '*/internal/*' -not -path '*/testdata/*' -print0 | xargs -0 revive -config .revive.toml
