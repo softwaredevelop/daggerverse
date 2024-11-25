@@ -15,27 +15,12 @@
 package main
 
 import (
-	"context"
 	"dagger/ruff/internal/dagger"
 )
 
 type Ruff struct{}
 
-// Returns a container that echoes whatever string argument is provided
-func (m *Ruff) ContainerEcho(stringArg string) *dagger.Container {
-	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
-}
-
-// Returns lines that match a pattern in the files of the provided Directory
-func (m *Ruff) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
-	return dag.Container().
-		From("alpine:latest").
-		WithMountedDirectory("/mnt", directoryArg).
-		WithWorkdir("/mnt").
-		WithExec([]string{"grep", "-R", pattern, "."}).
-		Stdout(ctx)
-}
-
+// CheckWithConfig runs the ruff check command with a configuration file.
 func (m *Ruff) CheckWithConfig(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
