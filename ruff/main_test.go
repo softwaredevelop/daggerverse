@@ -41,7 +41,10 @@ func Test_Ruff(t *testing.T) {
 			WithExec([]string{"/ruff", "check", "--config", "/.config/.ruff.toml"}).
 			Stdout(ctx)
 		require.Error(t, err)
-		require.ErrorContains(t, err, "F821")
+		errorIDs := []string{"F821", "I001"}
+		for _, id := range errorIDs {
+			require.Contains(t, err.Error(), id)
+		}
 	})
 	t.Run("Test_ruff_host_directory_check_file_error", func(t *testing.T) {
 		t.Parallel()
