@@ -15,6 +15,8 @@ package main
 
 import (
 	"context"
+	"dagger/editorconfig/test/internal/dagger"
+	"strings"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -26,33 +28,37 @@ type Editorconfigtest struct{}
 func (m *Editorconfigtest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
+	p.Go(m.Check)
 	p.Go(m.CheckExcludeDirectory)
-	p.Go(m.CheckIncludeDirectory)
 
 	return p.Wait()
 }
 
-// CheckIncludeDirectory runs the editorconfig-checker command.
-func (m *Editorconfigtest) CheckIncludeDirectory(ctx context.Context) error {
-
-	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Editorconfig().Check(dir, "exclude_directory").Stdout(ctx)
-
-	if err != nil {
-		return nil
-	}
-
-	return err
-}
-
-// CheckExcludeDirectory runs the editorconfig-checker command.
+// CheckExcludeDirectory runs the editorconfig-checker command with a pattern to exclude directories.
 func (m *Editorconfigtest) CheckExcludeDirectory(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Editorconfig().Check(dir, ".testdata").Stdout(ctx)
+	_, err := dag.Editorconfig().Check(dir, dagger.EditorconfigCheckOpts{
+		ExcludeDirectoryPattern: ".testdata",
+	}).Stdout(ctx)
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// Check runs the editorconfig-checker command.
+func (m *Editorconfigtest) Check(ctx context.Context) error {
+
+	dir := dag.CurrentModule().Source().Directory("./testdata")
+	_, err := dag.Editorconfig().Check(dir).Stdout(ctx)
+
+	if err != nil {
+		if !strings.Contains(err.Error(), ".testdata/t.txt") {
+			return err
+		}
 	}
 
 	return nil
