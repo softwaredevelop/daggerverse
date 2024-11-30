@@ -27,29 +27,15 @@ func (m *Editorconfigtest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
 	p.Go(m.CheckExcludeDirectory)
-	p.Go(m.CheckIncludeDirectory)
 
 	return p.Wait()
-}
-
-// CheckIncludeDirectory runs the editorconfig-checker command.
-func (m *Editorconfigtest) CheckIncludeDirectory(ctx context.Context) error {
-
-	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Editorconfig().Check(dir, "exclude_directory").Stdout(ctx)
-
-	if err != nil {
-		return nil
-	}
-
-	return err
 }
 
 // CheckExcludeDirectory runs the editorconfig-checker command.
 func (m *Editorconfigtest) CheckExcludeDirectory(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Editorconfig().Check(dir, ".testdata").Stdout(ctx)
+	_, err := dag.Editorconfig().Check(dir).Stdout(ctx)
 
 	if err != nil {
 		return err
