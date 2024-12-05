@@ -28,16 +28,11 @@ func (m *Revive) Check(
 	return base().
 		WithMountedDirectory("/go", source).
 		WithWorkdir("/go").
-		WithExec([]string{"revive", "-set_exit_status", "./..."})
+		WithExec([]string{"/revive", "-set_exit_status", "./..."})
 }
 
 // Test_Revive runs tests for the Revive module
 func base() *dagger.Container {
-	image := dag.
-		Container().
-		From("ghcr.io/mgechev/revive:latest")
-
 	return dag.Container().
-		From("golang:alpine").
-		WithFile("/usr/bin/revive", image.File("/usr/bin/revive"))
+		From("ghcr.io/mgechev/revive:latest")
 }
