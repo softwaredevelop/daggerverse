@@ -37,7 +37,7 @@ func Test_Revive(t *testing.T) {
 		_, err := container.
 			WithMountedDirectory("/go", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/go").
-			WithExec([]string{"revive", "-set_exit_status", "./..."}).
+			WithExec([]string{"/revive", "-set_exit_status", "./..."}).
 			Stdout(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "don't use underscores in Go names")
@@ -48,18 +48,14 @@ func Test_Revive(t *testing.T) {
 		require.NotNil(t, container)
 
 		out, err := container.
-			WithExec([]string{"revive", "-version"}).
+			WithExec([]string{"/revive", "-version"}).
 			Stdout(ctx)
 		require.NoError(t, err)
-		require.Contains(t, out, "version")
+		require.Contains(t, out, "Version")
 	})
 }
 
 func base() *dagger.Container {
-	image := c.Container().
-		From("ghcr.io/mgechev/revive:latest")
-
 	return c.Container().
-		From("golang:alpine").
-		WithFile("/usr/bin/revive", image.File("/usr/bin/revive"))
+		From("ghcr.io/mgechev/revive:latest")
 }
