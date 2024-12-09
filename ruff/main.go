@@ -45,6 +45,7 @@ func (m *Ruff) Check(
 		WithExec([]string{"/ruff", "check"})
 }
 
+// base returns the ruff base container
 func base() *dagger.Container {
 	return dag.Container().
 		From("ghcr.io/astral-sh/ruff:latest")
