@@ -31,7 +31,7 @@ func (m *Revive) Check(
 		WithExec([]string{"/revive", "-set_exit_status", "./..."})
 }
 
-// Test_Revive runs tests for the Revive module
+// base returns the revive container
 func base() *dagger.Container {
 	return dag.Container().
 		From("ghcr.io/mgechev/revive:latest")
