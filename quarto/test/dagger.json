@@ -1,0 +1,13 @@
+{
+  "name": "quarto/test",
+  "engineVersion": "v0.14.0",
+  "sdk": "go",
+  "dependencies": [
+    {
+      "name": "quarto",
+      "source": "..",
+      "pin": ""
+    }
+  ],
+  "source": "."
+}
