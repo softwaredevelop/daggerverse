@@ -17,20 +17,36 @@ import (
 	"dagger/quarto/internal/dagger"
 )
 
+const defaultImageRepository = "ghcr.io/quarto-dev/quarto"
+
 // Quarto is a Dagger module that provides functions for running Quarto
-type Quarto struct{}
+type Quarto struct {
+	// +private
+	Ctr *dagger.Container
+}
+
+// New creates a new instance of the Quarto struct
+func New(
+	// Custom image reference in "repository:tag" format to use as a base container.
+	// +optional
+	image string,
+) *Quarto {
+	var ctr *dagger.Container
+
+	if image != "" {
+		ctr = dag.Container().From(image)
+	} else {
+		ctr = dag.Container().From(defaultImageRepository)
+	}
+
+	return &Quarto{ctr}
+}
 
 // Cli runs the quarto cli
 func (m *Quarto) Cli(
 	// commands to run
-	command []string,
+	args []string,
 ) *dagger.Container {
-	return base().
-		WithExec(command)
-}
-
-// base returns the quarto container
-func base() *dagger.Container {
-	return dag.Container().
-		From("ghcr.io/quarto-dev/quarto:latest")
+	return m.Ctr.
+		WithExec(args)
 }
