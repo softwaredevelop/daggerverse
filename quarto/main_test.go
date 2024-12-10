@@ -31,7 +31,7 @@ func Test_Quatro(t *testing.T) {
 
 	t.Run("Test_quatro_version", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base(nil)
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -42,7 +42,18 @@ func Test_Quatro(t *testing.T) {
 	})
 }
 
-func base() *dagger.Container {
-	return c.Container().
-		From("ghcr.io/quarto-dev/quarto:latest")
+func base(
+	image *string,
+) *dagger.Container {
+
+	defaultImageRepository := "ghcr.io/quarto-dev/quarto"
+	var ctr *dagger.Container
+
+	if image != nil {
+		ctr = c.Container().From(*image)
+	} else {
+		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	return ctr
 }
