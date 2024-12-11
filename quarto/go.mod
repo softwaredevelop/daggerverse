@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	dagger.io/dagger v0.14.0
-	github.com/99designs/gqlgen v0.17.58
+	github.com/99designs/gqlgen v0.17.60
 	github.com/Khan/genqlient v0.7.0
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.20
@@ -22,7 +22,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
 	go.opentelemetry.io/proto/otlp v1.4.0
-	golang.org/x/exp v0.0.0-20241204233417-43b7b7cde48d
+	golang.org/x/exp v0.0.0-20241210194714-1829a127f884
 	golang.org/x/sync v0.10.0
 	google.golang.org/grpc v1.68.1
 )

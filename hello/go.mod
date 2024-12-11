@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	dagger.io/dagger v0.12.4
-	github.com/99designs/gqlgen v0.17.57
+	github.com/99designs/gqlgen v0.17.60
 	github.com/Khan/genqlient v0.7.0
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.20
@@ -20,7 +20,7 @@ require (
 	go.opentelemetry.io/otel/sdk/log v0.8.0
 	go.opentelemetry.io/otel/trace v1.32.0
 	go.opentelemetry.io/proto/otlp v1.4.0
-	golang.org/x/exp v0.0.0-20241204233417-43b7b7cde48d
+	golang.org/x/exp v0.0.0-20241210194714-1829a127f884
 	golang.org/x/sync v0.10.0
 	google.golang.org/grpc v1.68.1
 )
@@ -44,8 +44,8 @@ require (
 	golang.org/x/net v0.32.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20241206012308-a4fef0638583 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241206012308-a4fef0638583 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
