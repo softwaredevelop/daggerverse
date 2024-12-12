@@ -1,12 +1,11 @@
 {
   "name": "actionlint/tes",
-  "engineVersion": "v0.14.0",
+  "engineVersion": "v0.15.0",
   "sdk": "go",
   "dependencies": [
     {
       "name": "actionlint",
-      "source": "..",
-      "pin": ""
+      "source": ".."
     }
   ],
   "source": "."

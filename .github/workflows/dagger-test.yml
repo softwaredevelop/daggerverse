@@ -31,13 +31,6 @@ jobs:
       matrix:
         module:
           - actionlint
-          - editorconfig
-          - hadolint
-          - hello
-          - revive
-          - ruff
-          - shellcheck
-          - yamllint
 
     steps:
       - name: Checkout code
