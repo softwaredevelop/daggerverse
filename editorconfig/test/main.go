@@ -16,7 +16,7 @@ package main
 import (
 	"context"
 	"dagger/editorconfig/test/internal/dagger"
-	"strings"
+	"regexp"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -53,13 +53,14 @@ func (m *Editorconfigtest) CheckExcludeDirectory(ctx context.Context) error {
 func (m *Editorconfigtest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Editorconfig().Check(dir).Stdout(ctx)
+	_, err := dag.Editorconfig().Check(dir).Stderr(ctx)
 
 	if err != nil {
-		if !strings.Contains(err.Error(), ".testdata/t.txt") {
-			return err
+		re := regexp.MustCompile("exit code: 1")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }

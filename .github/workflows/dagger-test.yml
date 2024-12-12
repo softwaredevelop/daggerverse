@@ -31,6 +31,7 @@ jobs:
       matrix:
         module:
           - actionlint
+          - editorconfig
 
     steps:
       - name: Checkout code
