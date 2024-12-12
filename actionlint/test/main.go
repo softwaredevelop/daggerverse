@@ -15,7 +15,7 @@ package main
 
 import (
 	"context"
-	"strings"
+	"regexp"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -39,10 +39,11 @@ func (m *Actionlinttes) CheckWorkflow(ctx context.Context) error {
 	_, err := dag.Actionlint().Check(dir).Stderr(ctx)
 
 	if err != nil {
-		if !strings.Contains(err.Error(), "exit code") {
-			return err
+		re := regexp.MustCompile("exit code: 123")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
