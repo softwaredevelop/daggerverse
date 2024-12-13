@@ -35,6 +35,7 @@ jobs:
           - hadolint
           - hello
           - quarto
+          - revive
 
     steps:
       - name: Checkout code
