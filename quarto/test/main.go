@@ -34,7 +34,7 @@ func (m *Quartotest) All(ctx context.Context) error {
 // CliVersion runs the quarto --version command.
 func (m *Quartotest) CliVersion(ctx context.Context) error {
 
-	_, err := dag.Quarto().Cli([]string{"quarto", "--version"}).Stdout(ctx)
+	_, err := dag.Quarto().Cli([]string{"quarto", "--version"}).Stderr(ctx)
 
 	if err != nil {
 		return err
