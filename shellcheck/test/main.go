@@ -15,7 +15,7 @@ package main
 
 import (
 	"context"
-	"strings"
+	"regexp"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -36,16 +36,14 @@ func (m *Shellchecktest) All(ctx context.Context) error {
 func (m *Shellchecktest) CheckDirectory(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Shellcheck().Check(dir).Stdout(ctx)
+	_, err := dag.Shellcheck().Check(dir).Stderr(ctx)
 
 	if err != nil {
-		errorIDs := []string{"SC2283", "SC2154", "SC2086"}
-		for _, id := range errorIDs {
-			if !strings.Contains(err.Error(), id) {
-				return err
-			}
+		re := regexp.MustCompile("exit code: 123")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
