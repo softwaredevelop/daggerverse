@@ -15,7 +15,7 @@ package main
 
 import (
 	"context"
-	"strings"
+	"regexp"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -36,13 +36,14 @@ func (m *Revivetest) All(ctx context.Context) error {
 func (m *Revivetest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Revive().Check(dir).Stdout(ctx)
+	_, err := dag.Revive().Check(dir).Stderr(ctx)
 
 	if err != nil {
-		if !strings.Contains(err.Error(), "don't use underscores in Go names") {
-			return err
+		re := regexp.MustCompile("exit code: 1")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
