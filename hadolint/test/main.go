@@ -15,7 +15,7 @@ package main
 
 import (
 	"context"
-	"strings"
+	"regexp"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -38,41 +38,30 @@ func (m *Hadolinttest) CheckWithConfig(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
 	file := dag.CurrentModule().Source().File("./testdata/.config/.hadolint.yaml")
-	_, err := dag.Hadolint().CheckWithConfig(dir, file).Stdout(ctx)
+	_, err := dag.Hadolint().CheckWithConfig(dir, file).Stderr(ctx)
 
 	if err != nil {
-		errorIDs := []string{"DL3006", "DL3008"}
-		for _, id := range errorIDs {
-			if !strings.Contains(err.Error(), id) {
-				return err
-			}
-		}
-
-		errorIDs = []string{"DL3015", "DL3014"}
-		for _, id := range errorIDs {
-			if strings.Contains(err.Error(), id) {
-				return err
-			}
+		re := regexp.MustCompile("exit code: 123")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
 
 // Check runs the hadolint-checker command.
 func (m *Hadolinttest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Hadolint().Check(dir).Stdout(ctx)
+	_, err := dag.Hadolint().Check(dir).Stderr(ctx)
 
 	if err != nil {
-		errorIDs := []string{"DL3006", "DL3008", "DL3015", "DL3014"}
-		for _, id := range errorIDs {
-			if !strings.Contains(err.Error(), id) {
-				return err
-			}
+		re := regexp.MustCompile("exit code: 123")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
