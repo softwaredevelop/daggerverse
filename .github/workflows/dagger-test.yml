@@ -37,6 +37,7 @@ jobs:
           - quarto
           - revive
           - ruff
+          - shellcheck
 
     steps:
       - name: Checkout code
