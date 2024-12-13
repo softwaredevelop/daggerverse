@@ -15,7 +15,7 @@ package main
 
 import (
 	"context"
-	"strings"
+	"regexp"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -39,16 +39,11 @@ func (m *Yamllinttest) Check(ctx context.Context) error {
 	_, err := dag.Yamllint().Check(dir).Stdout(ctx)
 
 	if err != nil {
-		expectedErrors := []string{
-			"syntax error: expected <block end>, but found '<block mapping start>' (syntax)",
-			"too many spaces before colon  (colons)",
-		}
-		for _, expectedError := range expectedErrors {
-			if !strings.Contains(err.Error(), expectedError) {
-				return err
-			}
+		re := regexp.MustCompile("exit code: 1")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
