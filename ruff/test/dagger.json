@@ -1,12 +1,11 @@
 {
   "name": "ruff/test",
-  "engineVersion": "v0.14.0",
+  "engineVersion": "v0.15.1",
   "sdk": "go",
   "dependencies": [
     {
       "name": "ruff",
-      "source": "..",
-      "pin": ""
+      "source": ".."
     }
   ],
   "source": "."

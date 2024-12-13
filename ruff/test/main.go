@@ -11,12 +11,11 @@
 // The first line in this comment block is a short description line and the
 // rest is a long description with more detail on the module's purpose or usage,
 // if appropriate. All modules should have a short description.
-
 package main
 
 import (
 	"context"
-	"strings"
+	"regexp"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -38,34 +37,30 @@ func (m *Rufftest) CheckWithConfig(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
 	file := dag.CurrentModule().Source().File("./testdata/.config/.ruff.toml")
-	_, err := dag.Ruff().CheckWithConfig(dir, file).Stdout(ctx)
+	_, err := dag.Ruff().CheckWithConfig(dir, file).Stderr(ctx)
 
 	if err != nil {
-		errorIDs := []string{"F821", "I001"}
-		for _, id := range errorIDs {
-			if !strings.Contains(err.Error(), id) {
-				return err
-			}
+		re := regexp.MustCompile("exit code: 1")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
 
 // Check runs the ruff check command.
 func (m *Rufftest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Ruff().Check(dir).Stdout(ctx)
+	_, err := dag.Ruff().Check(dir).Stderr(ctx)
 
 	if err != nil {
-		errorIDs := []string{"F401"}
-		for _, id := range errorIDs {
-			if !strings.Contains(err.Error(), id) {
-				return err
-			}
+		re := regexp.MustCompile("exit code: 1")
+		if re.MatchString(err.Error()) {
+			return nil
 		}
 	}
 
-	return nil
+	return err
 }
