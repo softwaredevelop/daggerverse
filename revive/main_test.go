@@ -31,7 +31,7 @@ func Test_Revive(t *testing.T) {
 
 	t.Run("Test_revive_check", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		_, err := container.
@@ -44,18 +44,29 @@ func Test_Revive(t *testing.T) {
 	})
 	t.Run("Test_revive_version", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		out, err := container.
 			WithExec([]string{"/revive", "-version"}).
 			Stdout(ctx)
 		require.NoError(t, err)
-		require.Contains(t, out, "Version")
+		require.Regexp(t, `Version:\s*\d+\.\d+\.\d+`, out)
 	})
 }
 
-func base() *dagger.Container {
-	return c.Container().
-		From("ghcr.io/mgechev/revive:latest")
+func base(
+	image string,
+) *dagger.Container {
+
+	defaultImageRepository := "ghcr.io/mgechev/revive"
+	var ctr *dagger.Container
+
+	if image != "" {
+		ctr = c.Container().From(image)
+	} else {
+		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	return ctr
 }
