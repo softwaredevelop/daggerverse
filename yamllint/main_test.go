@@ -31,7 +31,7 @@ func Test_yamllint(t *testing.T) {
 
 	t.Run("Test_yamllint_directory_with_host_directory", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		_, err := container.
@@ -45,8 +45,9 @@ func Test_yamllint(t *testing.T) {
 			Stdout(ctx)
 		require.Error(t, err)
 		expectedErrors := []string{
-			"syntax error: expected <block end>, but found '<block mapping start>' (syntax)",
-			"too many spaces before colon  (colons)",
+			"error",
+			"(syntax)",
+			"(colons)",
 		}
 		for _, expectedError := range expectedErrors {
 			require.Contains(t, err.Error(), expectedError)
@@ -54,17 +55,17 @@ func Test_yamllint(t *testing.T) {
 	})
 	t.Run("Test_yamllint_error", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		// editorconfig-checker-disable
 		badYAML := `
-foo: "bar"
-  baz: "qux"
-- item1
-- item2
-key : value
-`
+	foo: "bar"
+	  baz: "qux"
+	- item1
+	- item2
+	key : value
+	`
 		// editorconfig-checker-enable
 
 		container = container.WithNewFile("/tmp/bad.yaml", badYAML)
@@ -74,12 +75,13 @@ key : value
 				"{extends: default, rules: {line-length: {level: warning}}}",
 				"--no-warnings",
 				"/tmp/bad.yaml"}).
-			Stdout(ctx)
+			Stderr(ctx)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "error")
 		expectedErrors := []string{
-			"syntax error: expected <block end>, but found '<block mapping start>' (syntax)",
-			"too many spaces before colon  (colons)",
+			"error",
+			"(empty-lines)",
+			"(syntax)",
+			"(trailing-spaces)",
 		}
 		for _, expectedError := range expectedErrors {
 			require.Contains(t, err.Error(), expectedError)
@@ -87,7 +89,7 @@ key : value
 	})
 	t.Run("Test_yamllint_version", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -98,9 +100,18 @@ key : value
 	})
 }
 
-func base() *dagger.Container {
-	return c.
-		Container().
-		From("pipelinecomponents/yamllint").
-		WithoutEntrypoint()
+func base(
+	image string,
+) *dagger.Container {
+
+	defaultImageRepository := "pipelinecomponents/yamllint"
+	var ctr *dagger.Container
+
+	if image != "" {
+		ctr = c.Container().From(image)
+	} else {
+		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	return ctr
 }

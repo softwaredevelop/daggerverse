@@ -40,6 +40,7 @@ jobs:
           - revive
           - ruff
           - shellcheck
+          - yamllint
 
     steps:
       - name: Checkout code
