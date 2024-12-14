@@ -1,0 +1,17 @@
+project:
+  type: book
+
+book:
+  title: "Test"
+  author: "Test Author"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  pdf:
+    documentclass: report

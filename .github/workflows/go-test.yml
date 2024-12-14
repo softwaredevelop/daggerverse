@@ -36,6 +36,7 @@ jobs:
           - editorconfig
           - hadolint
           - hello
+          - quarto
 
     steps:
       - name: Checkout code
