@@ -31,7 +31,7 @@ func Test_Hadolint(t *testing.T) {
 
 	t.Run("Test_hadolint_with_config", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("hadolint/hadolint:latest-alpine")
 		require.NotNil(t, container)
 
 		_, err := container.
@@ -52,7 +52,7 @@ func Test_Hadolint(t *testing.T) {
 	})
 	t.Run("Test_hadolint_dockerfile_error", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("hadolint/hadolint:latest-alpine")
 		require.NotNil(t, container)
 
 		_, err := container.
@@ -68,7 +68,7 @@ func Test_Hadolint(t *testing.T) {
 	})
 	t.Run("Test_hadolint_error", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("hadolint/hadolint:latest-alpine")
 		require.NotNil(t, container)
 
 		_, err := container.
@@ -87,7 +87,7 @@ func Test_Hadolint(t *testing.T) {
 	})
 	t.Run("Test_hadolint_version", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -98,7 +98,18 @@ func Test_Hadolint(t *testing.T) {
 	})
 }
 
-func base() *dagger.Container {
-	return c.Container().
-		From("hadolint/hadolint:latest-alpine")
+func base(
+	image string,
+) *dagger.Container {
+
+	defaultImageRepository := "hadolint/hadolint"
+	var ctr *dagger.Container
+
+	if image != "" {
+		ctr = c.Container().From(image)
+	} else {
+		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	return ctr
 }
