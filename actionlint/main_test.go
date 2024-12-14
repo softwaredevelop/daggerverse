@@ -31,20 +31,20 @@ func Test_Actionlint(t *testing.T) {
 
 	t.Run("Test_actionlint_error", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		_, err := container.
 			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"sh", "-c", "find . -type f -name '*.yml' -print0 | xargs -0 actionlint"}).
-			Stdout(ctx)
+			Stderr(ctx)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "exit code")
+		require.Contains(t, err.Error(), "exit code: 123")
 	})
 	t.Run("Test_actionlint_version", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -55,7 +55,7 @@ func Test_Actionlint(t *testing.T) {
 	})
 	t.Run("Test_shellcheck_version", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -66,19 +66,18 @@ func Test_Actionlint(t *testing.T) {
 	})
 }
 
-func base() *dagger.Container {
-	install := c.Container().
-		From("golang:alpine").
-		WithExec([]string{
-			"go", "install",
-			"github.com/rhysd/actionlint/cmd/actionlint@latest",
-		})
+func base(
+	image string,
+) *dagger.Container {
 
-	shellcheck := c.Container().
-		From("koalaman/shellcheck-alpine:stable")
+	defaultImageRepository := "rhysd/actionlint"
+	var ctr *dagger.Container
 
-	return c.Container().
-		From("cgr.dev/chainguard/wolfi-base:latest").
-		WithFile("/usr/bin/actionlint", install.File("/go/bin/actionlint")).
-		WithFile("/usr/bin/shellcheck", shellcheck.File("/bin/shellcheck"))
+	if image != "" {
+		ctr = c.Container().From(image)
+	} else {
+		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	return ctr
 }
