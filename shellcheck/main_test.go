@@ -31,7 +31,7 @@ func Test_Shellcheck(t *testing.T) {
 
 	t.Run("Test_mounted_host_directory_check", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		_, err := container.
@@ -47,20 +47,29 @@ func Test_Shellcheck(t *testing.T) {
 	})
 	t.Run("Test_shellcheck_version", func(t *testing.T) {
 		t.Parallel()
-		container := base()
+		container := base("")
 		require.NotNil(t, container)
 
 		out, err := container.
 			WithExec([]string{"shellcheck", "--version"}).
 			Stdout(ctx)
 		require.NoError(t, err)
-		require.Contains(t, out, "version")
+		require.Regexp(t, `version:\s*v\d+\.\d+\.\d+(?:-\d+-[a-f0-9]+)?`, out)
 	})
 }
 
-func base() *dagger.Container {
-	return c.
-		Container().
-		From("koalaman/shellcheck-alpine:latest").
-		WithoutEntrypoint()
+func base(
+	image string,
+) *dagger.Container {
+
+	defaultImageRepository := "koalaman/shellcheck-alpine"
+	var ctr *dagger.Container
+
+	if image != "" {
+		ctr = c.Container().From(image)
+	} else {
+		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	return ctr
 }
