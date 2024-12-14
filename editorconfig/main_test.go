@@ -32,7 +32,7 @@ func Test_Editorconfig(t *testing.T) {
 
 	t.Run("Test_mounted_host_directory_without_git_directory", func(t *testing.T) {
 		t.Parallel()
-		container := base(c)
+		container := base("")
 		require.NotNil(t, container)
 
 		dir, err := os.Getwd()
@@ -44,45 +44,49 @@ func Test_Editorconfig(t *testing.T) {
 				Exclude: []string{".git"},
 			})).
 			WithWorkdir("/tmp").
-			WithExec([]string{"/editorconfig-checker", "-dry-run"}).
+			WithExec([]string{"ec", "-dry-run"}).
 			Stdout(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, out)
+		require.NotRegexp(t, `\.git/`, out)
 	})
 	t.Run("Test_mounted_host_directory", func(t *testing.T) {
 		t.Parallel()
-		container := base(c)
+		container := base("")
 		require.NotNil(t, container)
 
 		out, err := container.
 			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
-			WithExec([]string{"/editorconfig-checker", "-dry-run"}).
+			WithExec([]string{"ec", "-dry-run"}).
 			Stdout(ctx)
 		require.NoError(t, err)
-		require.Contains(t, out, "t.txt")
+		require.Regexp(t, `t\.txt`, out)
 	})
-	t.Run("Test_editorconfig_checker_help", func(t *testing.T) {
+	t.Run("Test_editorconfig-checker_help", func(t *testing.T) {
 		t.Parallel()
-		container := base(c)
+		container := base("")
 		require.NotNil(t, container)
 
 		_, err := container.
-			WithExec([]string{"/editorconfig-checker", "-help"}).
-			Stdout(ctx)
+			WithExec([]string{"ec", "-help"}).
+			Stderr(ctx)
 		require.NoError(t, err)
 	})
 }
 
-func base(c *dagger.Client) *dagger.Container {
-	install := c.
-		Container().
-		From("golang:alpine").
-		WithExec([]string{
-			"go", "install",
-			"github.com/editorconfig-checker/editorconfig-checker/cmd/editorconfig-checker@latest",
-		})
+func base(
+	image string,
+) *dagger.Container {
 
-	return c.Container().
-		WithFile("/", install.File("/go/bin/editorconfig-checker"))
+	defaultImageRepository := "mstruebing/editorconfig-checker"
+	var ctr *dagger.Container
+
+	if image != "" {
+		ctr = c.Container().From(image)
+	} else {
+		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	return ctr
 }
