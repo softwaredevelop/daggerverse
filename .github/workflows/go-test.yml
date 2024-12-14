@@ -38,6 +38,7 @@ jobs:
           - hello
           - quarto
           - revive
+          - ruff
 
     steps:
       - name: Checkout code
