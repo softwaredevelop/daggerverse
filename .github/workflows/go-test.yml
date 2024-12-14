@@ -35,6 +35,7 @@ jobs:
           - actionlint
           - editorconfig
           - hadolint
+          - hello
 
     steps:
       - name: Checkout code
