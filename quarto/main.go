@@ -15,6 +15,7 @@ package main
 
 import (
 	"dagger/quarto/internal/dagger"
+	"strings"
 )
 
 const defaultImageRepository = "ghcr.io/quarto-dev/quarto"
@@ -42,11 +43,23 @@ func New(
 	return &Quarto{ctr}
 }
 
+// Render runs the quarto render command
+func (m *Quarto) Render(
+	// source directory.
+	source *dagger.Directory,
+) *dagger.Container {
+	return m.Ctr.
+		WithMountedDirectory("/tmp", source).
+		WithWorkdir("/tmp").
+		WithExec([]string{"quarto", "render"})
+}
+
 // Cli runs the quarto cli
 func (m *Quarto) Cli(
 	// commands to run
-	args []string,
+	args string,
 ) *dagger.Container {
+	parsedArgs := strings.Split(args, " ")
 	return m.Ctr.
-		WithExec(args)
+		WithExec(parsedArgs)
 }
