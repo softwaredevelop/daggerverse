@@ -15,6 +15,7 @@ package main
 
 import (
 	"context"
+	"dagger/quarto/test/internal/dagger"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -26,15 +27,50 @@ type Quartotest struct{}
 func (m *Quartotest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
-	p.Go(m.CliVersion)
+	p.Go(m.Render)
+	p.Go(m.FullVersion)
+	p.Go(m.Version)
 
 	return p.Wait()
 }
 
-// CliVersion runs the quarto --version command.
-func (m *Quartotest) CliVersion(ctx context.Context) error {
+// Render runs the quarto render command.
+func (m *Quartotest) Render(ctx context.Context) error {
 
-	_, err := dag.Quarto().Cli([]string{"quarto", "--version"}).Stderr(ctx)
+	dir := dag.CurrentModule().Source().Directory("./testdata")
+	_, err := dag.Quarto(
+		dagger.QuartoOpts{
+			Image: "ghcr.io/quarto-dev/quarto-full",
+		},
+	).Render(dir).Stderr(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// FullVersion runs the quarto --version command.
+func (m *Quartotest) FullVersion(ctx context.Context) error {
+
+	_, err := dag.Quarto(
+		dagger.QuartoOpts{
+			Image: "ghcr.io/quarto-dev/quarto-full",
+		},
+	).Cli("quarto --version").Stderr(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CliVersion runs the quarto --version command.
+func (m *Quartotest) Version(ctx context.Context) error {
+
+	_, err := dag.Quarto().Cli("quarto --version").Stderr(ctx)
 
 	if err != nil {
 		return err
