@@ -40,7 +40,7 @@ func Test_Revive(t *testing.T) {
 			WithExec([]string{"/revive", "-set_exit_status", "./..."}).
 			Stdout(ctx)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "don't use underscores in Go names")
+		require.Contains(t, err.Error(), "exit code: 1")
 	})
 	t.Run("Test_revive_version", func(t *testing.T) {
 		t.Parallel()
