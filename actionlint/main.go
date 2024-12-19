@@ -23,8 +23,8 @@ const (
 
 // Actionlint is a module for checking GitHub Actions workflows.
 type Actionlint struct {
-	// +private
 	Image string
+	Ctr   *dagger.Container
 }
 
 // New creates a new instance of the Actionlint struct
@@ -40,22 +40,25 @@ func New(
 
 // Container returns the underlying Dagger container
 func (m *Actionlint) Container() *dagger.Container {
-	var ctr *dagger.Container
-
-	if m.Image != "" {
-		ctr = dag.Container().From(m.Image)
-	} else {
-		ctr = dag.Container().From(defaultImageRepository)
+	if m.Ctr != nil {
+		return m.Ctr
 	}
 
-	return ctr
+	image := m.Image
+	if image == "" {
+		image = defaultImageRepository
+	}
+
+	m.Ctr = dag.Container().From(image)
+	return m.Ctr
 }
 
 // Check runs the actionlint command.
 func (m *Actionlint) Check(
-	// source is an optional argument that specifies a directory.
+	// Source directory
 	source *dagger.Directory,
 ) *dagger.Container {
+
 	return m.Container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
