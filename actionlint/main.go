@@ -17,34 +17,47 @@ import (
 	"dagger/actionlint/internal/dagger"
 )
 
+const (
+	defaultImageRepository = "rhysd/actionlint:latest"
+)
+
 // Actionlint is a module for checking GitHub Actions workflows.
-type Actionlint struct{}
+type Actionlint struct {
+	// +private
+	Image string
+}
+
+// New creates a new instance of the Actionlint struct
+func New(
+	// Custom image reference in "repository:tag" format to use as a base container.
+	// +optional
+	image string,
+) *Actionlint {
+	return &Actionlint{
+		Image: image,
+	}
+}
+
+// Container returns the underlying Dagger container
+func (m *Actionlint) Container() *dagger.Container {
+	var ctr *dagger.Container
+
+	if m.Image != "" {
+		ctr = dag.Container().From(m.Image)
+	} else {
+		ctr = dag.Container().From(defaultImageRepository)
+	}
+
+	return ctr
+}
 
 // Check runs the actionlint command.
 func (m *Actionlint) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return base().
+	return m.Container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"sh", "-c", "find . -type f -name '*.yml' -print0 | xargs -0 actionlint"})
-}
-
-// base returns a container with the actionlint binary installed.
-func base() *dagger.Container {
-	install := dag.Container().
-		From("golang:alpine").
-		WithExec([]string{
-			"go", "install",
-			"github.com/rhysd/actionlint/cmd/actionlint@latest",
-		})
-
-	shellcheck := dag.Container().
-		From("koalaman/shellcheck-alpine:stable")
-
-	return dag.Container().
-		From("cgr.dev/chainguard/wolfi-base:latest").
-		WithFile("/usr/bin/actionlint", install.File("/go/bin/actionlint")).
-		WithFile("/usr/bin/shellcheck", shellcheck.File("/bin/shellcheck"))
 }
