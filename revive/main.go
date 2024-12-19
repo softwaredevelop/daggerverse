@@ -17,22 +17,48 @@ import (
 	"dagger/revive/internal/dagger"
 )
 
-// Revive is a Dagger module that provides functions for running Revive linter
-type Revive struct{}
+const (
+	defaultImageRepository = "ghcr.io/mgechev/revive:latest"
+)
 
-// Check runs the revive command.
+// Revive is a Dagger module that provides functions for running Revive linter
+type Revive struct {
+	// // +private
+	// Ctr *dagger.Container
+	Image string
+}
+
+// New creates a new instance of the Revive struct
+func New(
+	// Custom image reference in "repository:tag" format to use as a base container.
+	// +optional
+	image string,
+) *Revive {
+	return &Revive{
+		Image: image,
+	}
+}
+
+// Container returns the underlying Dagger container
+func (m *Revive) Container() *dagger.Container {
+	var ctr *dagger.Container
+
+	if m.Image != "" {
+		ctr = dag.Container().From(m.Image)
+	} else {
+		ctr = dag.Container().From(defaultImageRepository)
+	}
+
+	return ctr
+}
+
+// Check runs the revive command
 func (m *Revive) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return base().
-		WithMountedDirectory("/go", source).
-		WithWorkdir("/go").
+	return m.Container().
+		WithMountedDirectory("/tmp", source).
+		WithWorkdir("/tmp").
 		WithExec([]string{"/revive", "-set_exit_status", "./..."})
-}
-
-// base returns the revive container
-func base() *dagger.Container {
-	return dag.Container().
-		From("ghcr.io/mgechev/revive:latest")
 }
