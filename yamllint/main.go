@@ -17,15 +17,48 @@ import (
 	"dagger/yamllint/internal/dagger"
 )
 
+const (
+	defaultImageRepository = "pipelinecomponents/yamllint:latest"
+)
+
 // Yamllint is a module for checking YAML files.
-type Yamllint struct{}
+type Yamllint struct {
+	Image string
+	Ctr   *dagger.Container
+}
+
+// New creates a new instance of the Yamllint struct
+func New(
+	// Custom image reference in "repository:tag" format to use as a base container.
+	// +optional
+	image string,
+) *Yamllint {
+	return &Yamllint{
+		Image: image,
+	}
+}
+
+// Container returns the underlying Dagger container
+func (m *Yamllint) Container() *dagger.Container {
+	if m.Ctr != nil {
+		return m.Ctr
+	}
+
+	image := m.Image
+	if image == "" {
+		image = defaultImageRepository
+	}
+
+	m.Ctr = dag.Container().From(image)
+	return m.Ctr
+}
 
 // Check runs yamllint on the provided source directory.
 func (m *Yamllint) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return base().
+	return m.Container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"yamllint",
@@ -33,12 +66,4 @@ func (m *Yamllint) Check(
 			"{extends: default, rules: {line-length: {level: warning}}}",
 			"--no-warnings",
 			"."})
-}
-
-// base returns a container with the yamllint image and no entrypoint.
-func base() *dagger.Container {
-	return dag.
-		Container().
-		From("pipelinecomponents/yamllint").
-		WithoutEntrypoint()
 }
