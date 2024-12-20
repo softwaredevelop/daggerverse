@@ -23,9 +23,8 @@ const (
 
 // Revive is a Dagger module that provides functions for running Revive linter
 type Revive struct {
-	// // +private
-	// Ctr *dagger.Container
 	Image string
+	Ctr   *dagger.Container
 }
 
 // New creates a new instance of the Revive struct
@@ -41,20 +40,22 @@ func New(
 
 // Container returns the underlying Dagger container
 func (m *Revive) Container() *dagger.Container {
-	var ctr *dagger.Container
-
-	if m.Image != "" {
-		ctr = dag.Container().From(m.Image)
-	} else {
-		ctr = dag.Container().From(defaultImageRepository)
+	if m.Ctr != nil {
+		return m.Ctr
 	}
 
-	return ctr
+	image := m.Image
+	if image == "" {
+		image = defaultImageRepository
+	}
+
+	m.Ctr = dag.Container().From(image)
+	return m.Ctr
 }
 
 // Check runs the revive command
 func (m *Revive) Check(
-	// source is an optional argument that specifies a directory.
+	// Source directory
 	source *dagger.Directory,
 ) *dagger.Container {
 	return m.Container().
