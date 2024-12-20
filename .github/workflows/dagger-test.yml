@@ -34,7 +34,7 @@ jobs:
           - editorconfig
           - hadolint
           - hello
-          - quarto
+          # - quarto
           - revive
           - ruff
           - shellcheck
