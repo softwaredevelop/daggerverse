@@ -18,29 +18,40 @@ import (
 	"strings"
 )
 
-const defaultImageRepository = "ghcr.io/quarto-dev/quarto"
+const (
+	defaultImageRepository = "ghcr.io/quarto-dev/quarto"
+)
 
-// Quarto is a Dagger module that provides functions for running Quarto
+// Quarto is a module for running Quarto
 type Quarto struct {
-	// +private
-	Ctr *dagger.Container
+	Image string
+	Ctr   *dagger.Container
 }
 
-// New creates a new instance of the Quarto struct
+// New creates a new instance of the Actionlint struct
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
 	image string,
 ) *Quarto {
-	var ctr *dagger.Container
+	return &Quarto{
+		Image: image,
+	}
+}
 
-	if image != "" {
-		ctr = dag.Container().From(image)
-	} else {
-		ctr = dag.Container().From(defaultImageRepository)
+// Container returns the underlying Dagger container
+func (m *Quarto) Container() *dagger.Container {
+	if m.Ctr != nil {
+		return m.Ctr
 	}
 
-	return &Quarto{ctr}
+	image := m.Image
+	if image == "" {
+		image = defaultImageRepository
+	}
+
+	m.Ctr = dag.Container().From(image)
+	return m.Ctr
 }
 
 // Render runs the quarto render command
@@ -48,7 +59,8 @@ func (m *Quarto) Render(
 	// source directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return m.Ctr.
+
+	return m.Container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"quarto", "render"})
@@ -60,6 +72,7 @@ func (m *Quarto) Cli(
 	args string,
 ) *dagger.Container {
 	parsedArgs := strings.Split(args, " ")
-	return m.Ctr.
+
+	return m.Container().
 		WithExec(parsedArgs)
 }
