@@ -42,7 +42,7 @@ func (m *Quartotest) Render(ctx context.Context) error {
 		dagger.QuartoOpts{
 			Image: "ghcr.io/quarto-dev/quarto-full",
 		},
-	).Render(dir).Stderr(ctx)
+	).Render(dir).Sync(ctx)
 
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (m *Quartotest) FullVersion(ctx context.Context) error {
 		dagger.QuartoOpts{
 			Image: "ghcr.io/quarto-dev/quarto-full",
 		},
-	).Cli("quarto --version").Stderr(ctx)
+	).Cli("quarto --version").Sync(ctx)
 
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (m *Quartotest) FullVersion(ctx context.Context) error {
 // CliVersion runs the quarto --version command.
 func (m *Quartotest) Version(ctx context.Context) error {
 
-	_, err := dag.Quarto().Cli("quarto --version").Stderr(ctx)
+	_, err := dag.Quarto().Cli("quarto --version").Sync(ctx)
 
 	if err != nil {
 		return err

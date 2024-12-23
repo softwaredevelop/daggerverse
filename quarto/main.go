@@ -24,8 +24,10 @@ const (
 
 // Quarto is a module for running Quarto
 type Quarto struct {
+	// +private
 	Image string
-	Ctr   *dagger.Container
+	// +private
+	Ctr *dagger.Container
 }
 
 // New creates a new instance of the Actionlint struct
