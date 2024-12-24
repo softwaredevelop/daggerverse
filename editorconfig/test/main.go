@@ -40,7 +40,7 @@ func (m *Editorconfigtest) CheckExcludeDirectory(ctx context.Context) error {
 	dir := dag.CurrentModule().Source().Directory("./testdata")
 	_, err := dag.Editorconfig().Check(dir, dagger.EditorconfigCheckOpts{
 		ExcludeDirectoryPattern: ".testdata",
-	}).Stdout(ctx)
+	}).Sync(ctx)
 
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (m *Editorconfigtest) CheckExcludeDirectory(ctx context.Context) error {
 func (m *Editorconfigtest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Editorconfig().Check(dir).Stderr(ctx)
+	_, err := dag.Editorconfig().Check(dir).Sync(ctx)
 
 	if err != nil {
 		re := regexp.MustCompile("exit code: 1")
