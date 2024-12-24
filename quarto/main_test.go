@@ -29,6 +29,21 @@ func Test_Quarto(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
+	t.Run("Test_quarto_tlmgr_mirror_and_render", func(t *testing.T) {
+		t.Parallel()
+		container := base("ghcr.io/quarto-dev/quarto-full")
+		require.NotNil(t, container)
+
+		out, err := container.
+			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata/")).
+			WithWorkdir("/tmp").
+			WithExec([]string{"tlmgr", "option", "repository", "http://mirror.ctan.org/systems/texlive/tlnet"}).
+			WithExec([]string{"quarto", "render"}).
+			WithExec([]string{"ls", "-1", "_book"}).
+			Stdout(ctx)
+		require.NoError(t, err)
+		require.Regexp(t, `\.pdf\s*$`, out)
+	})
 	t.Run("Test_quarto_full_render", func(t *testing.T) {
 		t.Parallel()
 		container := base("ghcr.io/quarto-dev/quarto-full")
