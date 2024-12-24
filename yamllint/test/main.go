@@ -36,7 +36,7 @@ func (m *Yamllinttest) All(ctx context.Context) error {
 func (m *Yamllinttest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Yamllint().Check(dir).Stdout(ctx)
+	_, err := dag.Yamllint().Check(dir).Sync(ctx)
 
 	if err != nil {
 		re := regexp.MustCompile("exit code: 1")
