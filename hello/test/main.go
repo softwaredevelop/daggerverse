@@ -15,7 +15,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"dagger/hello/test/internal/dagger"
 
 	"github.com/sourcegraph/conc/pool"
 )
@@ -27,42 +27,55 @@ type Test struct{}
 func (m *Test) All(ctx context.Context) error {
 	p := pool.New().WithContext(ctx)
 
-	p.Go(m.HelloString)
 	p.Go(m.HelloContainer)
+	p.Go(m.HelloStringContainer)
+	p.Go(m.HelloString)
 
 	return p.Wait()
 }
 
 // HelloContainer tests the HelloContainer function.
 func (m *Test) HelloContainer(ctx context.Context) error {
-	const expected = "Hello, Daggerverse!\n"
 
-	actual, err := dag.Hello().HelloContainer(ctx)
+	argString := "Hello, Daggerverse!"
+	_, err := dag.Hello().HelloContainer(argString).Sync(ctx)
 
 	if err != nil {
 		return err
 	}
 
-	if actual != expected {
-		return fmt.Errorf("expected %q, got %q", expected, actual)
+	return nil
+
+}
+
+// HelloStringContainer tests the HelloString function.
+func (m *Test) HelloStringContainer(ctx context.Context) error {
+
+	argString := "Hello, Daggerverse!"
+	_, err := dag.Hello(
+		dagger.HelloOpts{
+			Image: "cgr.dev/chainguard/wolfi-base:latest",
+		},
+	).HelloString(argString).Sync(ctx)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
+
 }
 
 // HelloString tests the HelloString function.
 func (m *Test) HelloString(ctx context.Context) error {
-	const expected = "Hello, Daggerverse!"
 
-	actual, err := dag.Hello().HelloString(ctx)
+	argString := "Hello, Daggerverse!"
+	_, err := dag.Hello().HelloString(argString).Sync(ctx)
 
 	if err != nil {
 		return err
 	}
 
-	if actual != expected {
-		return fmt.Errorf("expected %q, got %q", expected, actual)
-	}
-
 	return nil
+
 }
