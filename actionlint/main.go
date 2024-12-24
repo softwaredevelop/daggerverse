@@ -23,8 +23,10 @@ const (
 
 // Actionlint is a module for checking GitHub Actions workflows.
 type Actionlint struct {
+	// +private
 	Image string
-	Ctr   *dagger.Container
+	// +private
+	Ctr *dagger.Container
 }
 
 // New creates a new instance of the Actionlint struct

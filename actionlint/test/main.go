@@ -36,7 +36,7 @@ func (m *Actionlinttes) All(ctx context.Context) error {
 func (m *Actionlinttes) CheckWorkflow(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Actionlint().Check(dir).Stderr(ctx)
+	_, err := dag.Actionlint().Check(dir).Sync(ctx)
 
 	if err != nil {
 		re := regexp.MustCompile("exit code: 123")
