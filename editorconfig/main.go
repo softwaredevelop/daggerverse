@@ -23,8 +23,10 @@ const (
 
 // Editorconfig is a module for checking editorconfig files.
 type Editorconfig struct {
+	// +private
 	Image string
-	Ctr   *dagger.Container
+	// +private
+	Ctr *dagger.Container
 }
 
 // New creates a new instance of the Editorconfig struct
