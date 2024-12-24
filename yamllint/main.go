@@ -23,8 +23,10 @@ const (
 
 // Yamllint is a module for checking YAML files.
 type Yamllint struct {
+	// +private
 	Image string
-	Ctr   *dagger.Container
+	// +private
+	Ctr *dagger.Container
 }
 
 // New creates a new instance of the Yamllint struct
