@@ -14,9 +14,20 @@
 package main
 
 import (
-	"context"
 	"dagger/hello/internal/dagger"
 )
+
+const (
+	defaultImageRepository = "busybox:uclibc"
+)
+
+// Hello is a struct that provides echo functions.
+type Hello struct {
+	// +private
+	Image string
+	// +private
+	Ctr *dagger.Container
+}
 
 // New creates a new instance of the Hello struct.
 // If the ctr parameter is nil, it will create a new dagger.Container using the "busybox:uclibc" image.
@@ -24,41 +35,45 @@ import (
 // If not provided, it will default to "Hello, Daggerverse!".
 // The function returns a pointer to the created Hello struct.
 func New(
-	// ctr is an optional argument that specifies a container.
+	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
-	ctr *dagger.Container,
-	// stringArg is an optional argument that specifies a string value.
-	// +optional
-	// +default="Hello, Daggerverse!"
-	stringArg string,
+	image string,
 ) *Hello {
-	if ctr == nil {
-		ctr = dag.Container().
-			From("busybox:uclibc")
-	}
 	return &Hello{
-		Ctr:       *ctr,
-		StringArg: stringArg,
+		Image: image,
 	}
 }
 
-// Hello is a struct that provides echo functions.
-type Hello struct {
-	Ctr       dagger.Container
-	StringArg string
+// Container returns the underlying Dagger container
+func (m *Hello) Container() *dagger.Container {
+	if m.Ctr != nil {
+		return m.Ctr
+	}
+
+	image := m.Image
+	if image == "" {
+		image = defaultImageRepository
+	}
+
+	m.Ctr = dag.Container().From(image)
+	return m.Ctr
 }
 
 // HelloString returns the string value provided to the Hello struct.
-func (m *Hello) HelloString() string {
-	return m.StringArg
+func (m *Hello) HelloString(
+	// StringArg is the string value to be printed.
+	StringArg string,
+) *dagger.Container {
+	return m.Container().
+		WithExec([]string{"echo", StringArg})
 }
 
 // HelloContainer executes a container with the provided string value.
 func (m *Hello) HelloContainer(
-	ctx context.Context,
-) (string, error) {
-	return dag.Container().
+	// StringArg is the string value to be printed.
+	StringArg string,
+) *dagger.Container {
+	return m.Container().
 		From("cgr.dev/chainguard/wolfi-base:latest").
-		WithExec([]string{"echo", m.StringArg}).
-		Stdout(ctx)
+		WithExec([]string{"echo", StringArg})
 }
