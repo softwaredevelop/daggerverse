@@ -36,7 +36,7 @@ func (m *Revivetest) All(ctx context.Context) error {
 func (m *Revivetest) Check(ctx context.Context) error {
 
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Revive().Check(dir).Stderr(ctx)
+	_, err := dag.Revive().Check(dir).Sync(ctx)
 
 	if err != nil {
 		re := regexp.MustCompile("exit code: 1")
