@@ -63,7 +63,7 @@ func (m *Quarto) Render(
 ) *dagger.Container {
 
 	return m.Container().
-		WithMountedDirectory("/tmp", source).
+		WithDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"quarto", "render"})
 }
