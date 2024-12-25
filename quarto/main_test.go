@@ -3,6 +3,7 @@ package main_test
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"testing"
 
@@ -29,6 +30,34 @@ func Test_Quarto(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
+	t.Run("Test_quarto_render_export", func(t *testing.T) {
+		t.Parallel()
+		container := base("ghcr.io/quarto-dev/quarto-full")
+		require.NotNil(t, container)
+
+		out, err := container.
+			WithDirectory("/tmp", c.Host().Directory("./test/testdata/")).
+			WithWorkdir("/tmp").
+			WithExec([]string{"quarto", "render"}).
+			Directory("/tmp/_book").Sync(ctx)
+		require.NoError(t, err)
+		require.NotNil(t, out)
+
+		outputDir := "./test/outputdata/"
+		_, err = out.Export(ctx, outputDir)
+		require.NoError(t, err)
+
+		files, err := os.ReadDir(outputDir)
+		require.NoError(t, err)
+
+		fmt.Println(files)
+		for _, file := range files {
+			require.Regexp(t, `\.pdf\s*$`, file)
+		}
+
+		err = os.RemoveAll(outputDir)
+		require.NoError(t, err)
+	})
 	t.Run("Test_quarto_tlmgr_mirror_and_render", func(t *testing.T) {
 		t.Parallel()
 		container := base("ghcr.io/quarto-dev/quarto-full")
