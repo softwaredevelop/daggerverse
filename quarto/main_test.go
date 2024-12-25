@@ -31,7 +31,7 @@ func Test_Quarto(t *testing.T) {
 
 	t.Run("Test_quarto_render_export", func(t *testing.T) {
 		t.Parallel()
-		container := base("ghcr.io/quarto-dev/quarto-full")
+		container := base("ghcr.io/quarto-dev/quarto-full", nil)
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -58,7 +58,7 @@ func Test_Quarto(t *testing.T) {
 	})
 	t.Run("Test_quarto_tlmgr_mirror_and_render", func(t *testing.T) {
 		t.Parallel()
-		container := base("ghcr.io/quarto-dev/quarto-full")
+		container := base("ghcr.io/quarto-dev/quarto-full", nil)
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -73,7 +73,7 @@ func Test_Quarto(t *testing.T) {
 	})
 	t.Run("Test_quarto_full_render", func(t *testing.T) {
 		t.Parallel()
-		container := base("ghcr.io/quarto-dev/quarto-full")
+		container := base("ghcr.io/quarto-dev/quarto-full", nil)
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -87,7 +87,18 @@ func Test_Quarto(t *testing.T) {
 	})
 	t.Run("Test_quarto_full_version", func(t *testing.T) {
 		t.Parallel()
-		container := base("ghcr.io/quarto-dev/quarto-full")
+		container := base("ghcr.io/quarto-dev/quarto-full", nil)
+		require.NotNil(t, container)
+
+		out, err := container.
+			WithExec([]string{"quarto", "--version"}).
+			Stdout(ctx)
+		require.NoError(t, err)
+		require.Regexp(t, `\d+\.\d+\.\d+`, out)
+	})
+	t.Run("Test_quarto_add_extensions", func(t *testing.T) {
+		t.Parallel()
+		container := base("", []string{"quarto-ext/latex-environment", "quarto-ext/include-code-files"})
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -98,7 +109,7 @@ func Test_Quarto(t *testing.T) {
 	})
 	t.Run("Test_quarto_version", func(t *testing.T) {
 		t.Parallel()
-		container := base("")
+		container := base("", nil)
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -111,6 +122,7 @@ func Test_Quarto(t *testing.T) {
 
 func base(
 	image string,
+	extensions []string,
 ) *dagger.Container {
 
 	defaultImageRepository := "ghcr.io/quarto-dev/quarto"
@@ -120,6 +132,10 @@ func base(
 		ctr = c.Container().From(image)
 	} else {
 		ctr = c.Container().From(defaultImageRepository)
+	}
+
+	for _, ext := range extensions {
+		ctr = ctr.WithExec([]string{"quarto", "add", "--no-prompt", ext})
 	}
 
 	return ctr
