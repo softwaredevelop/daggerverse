@@ -27,6 +27,8 @@ type Quarto struct {
 	// +private
 	Image string
 	// +private
+	Extensions []string
+	// +private
 	Ctr *dagger.Container
 }
 
@@ -35,9 +37,13 @@ func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
 	image string,
+	// List of extensions to add to the container.
+	// +optional
+	extensions []string,
 ) *Quarto {
 	return &Quarto{
-		Image: image,
+		Image:      image,
+		Extensions: extensions,
 	}
 }
 
@@ -52,7 +58,13 @@ func (m *Quarto) Container() *dagger.Container {
 		image = defaultImageRepository
 	}
 
-	m.Ctr = dag.Container().From(image)
+	ctr := dag.Container().From(image)
+
+	for _, ext := range m.Extensions {
+		ctr = ctr.WithExec([]string{"quarto", "add", "--no-prompt", ext})
+	}
+
+	m.Ctr = ctr
 	return m.Ctr
 }
 
