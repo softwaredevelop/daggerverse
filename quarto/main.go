@@ -56,6 +56,18 @@ func (m *Quarto) Container() *dagger.Container {
 	return m.Ctr
 }
 
+// Build runs the quarto render command exporting to a directory
+func (m *Quarto) Build(
+	// source directory.
+	source *dagger.Directory,
+) *dagger.Directory {
+
+	return m.Container().
+		WithDirectory("/tmp", source).
+		WithWorkdir("/tmp").
+		WithExec([]string{"quarto", "render"}).Directory("/tmp/_book")
+}
+
 // Render runs the quarto render command
 func (m *Quarto) Render(
 	// source directory.

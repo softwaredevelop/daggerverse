@@ -3,7 +3,6 @@ package main_test
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"testing"
 
@@ -50,9 +49,8 @@ func Test_Quarto(t *testing.T) {
 		files, err := os.ReadDir(outputDir)
 		require.NoError(t, err)
 
-		fmt.Println(files)
 		for _, file := range files {
-			require.Regexp(t, `\.pdf\s*$`, file)
+			require.Regexp(t, `\.pdf$`, file)
 		}
 
 		err = os.RemoveAll(outputDir)
