@@ -35,7 +35,7 @@ func Test_Quarto(t *testing.T) {
 		require.NotNil(t, container)
 
 		out, err := container.
-			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata/")).
+			WithDirectory("/tmp", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"tlmgr", "option", "repository", "http://mirror.ctan.org/systems/texlive/tlnet"}).
 			WithExec([]string{"quarto", "render"}).
@@ -50,7 +50,7 @@ func Test_Quarto(t *testing.T) {
 		require.NotNil(t, container)
 
 		out, err := container.
-			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata/")).
+			WithDirectory("/tmp", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"quarto", "render"}).
 			WithExec([]string{"ls", "-1", "_book"}).
