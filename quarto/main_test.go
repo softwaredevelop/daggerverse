@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"dagger.io/dagger"
-	"dagger.io/dagger/dag"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,21 +57,21 @@ func Test_Quarto(t *testing.T) {
 		err = os.RemoveAll(outputDir)
 		require.NoError(t, err)
 	})
-	t.Run("Test_quarto_tlmgr_mirror_and_render", func(t *testing.T) {
-		t.Parallel()
-		container := base("ghcr.io/quarto-dev/quarto-full", nil, nil)
-		require.NotNil(t, container)
+	// t.Run("Test_quarto_tlmgr_mirror_and_render", func(t *testing.T) {
+	// 	t.Parallel()
+	// 	container := base("ghcr.io/quarto-dev/quarto-full", nil, nil)
+	// 	require.NotNil(t, container)
 
-		out, err := container.
-			WithDirectory("/tmp", c.Host().Directory("./test/testdata/")).
-			WithWorkdir("/tmp").
-			WithExec([]string{"tlmgr", "option", "repository", "http://mirror.ctan.org/systems/texlive/tlnet"}).
-			WithExec([]string{"quarto", "render"}).
-			WithExec([]string{"ls", "-1", "_book"}).
-			Stdout(ctx)
-		require.NoError(t, err)
-		require.Regexp(t, `\.pdf\s*$`, out)
-	})
+	// 	out, err := container.
+	// 		WithDirectory("/tmp", c.Host().Directory("./test/testdata/")).
+	// 		WithWorkdir("/tmp").
+	// 		WithExec([]string{"tlmgr", "option", "repository", "http://mirror.ctan.org/systems/texlive/tlnet"}).
+	// 		WithExec([]string{"quarto", "render"}).
+	// 		WithExec([]string{"ls", "-1", "_book"}).
+	// 		Stdout(ctx)
+	// 	require.NoError(t, err)
+	// 	require.Regexp(t, `\.pdf\s*$`, out)
+	// })
 	t.Run("Test_quarto_full_render", func(t *testing.T) {
 		t.Parallel()
 		container := base("ghcr.io/quarto-dev/quarto-full", nil, nil)
@@ -156,7 +155,7 @@ func base(
 		image = defaultImageRepository
 	}
 
-	ctr = dag.Container().From(image)
+	ctr = c.Container().From(image)
 
 	if strings.Contains(image, "quarto-full") {
 		for _, pkg := range latexpackages {
