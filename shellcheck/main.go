@@ -17,23 +17,51 @@ import (
 	"dagger/shellcheck/internal/dagger"
 )
 
+const (
+	defaultImageRepository = "koalaman/shellcheck-alpine:latest"
+)
+
 // Shellcheck is a module for checking shell scripts.
-type Shellcheck struct{}
+type Shellcheck struct {
+	// +private
+	Image string
+	// +private
+	Ctr *dagger.Container
+}
+
+// New creates a new instance of the Shellcheck struct
+func New(
+	// Custom image reference in "repository:tag" format to use as a base container.
+	// +optional
+	image string,
+) *Shellcheck {
+	return &Shellcheck{
+		Image: image,
+	}
+}
+
+// Container returns the underlying Dagger container
+func (m *Shellcheck) Container() *dagger.Container {
+	if m.Ctr != nil {
+		return m.Ctr
+	}
+
+	image := m.Image
+	if image == "" {
+		image = defaultImageRepository
+	}
+
+	m.Ctr = dag.Container().From(image)
+	return m.Ctr
+}
 
 // Check runs the shellcheck command.
 func (m *Shellcheck) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return base().
+	return m.Container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"sh", "-c", "find . -type f -name '*.sh' -print0 | xargs -0 shellcheck"})
-}
-
-// base returns a container with the shellcheck binary installed.
-func base() *dagger.Container {
-	return dag.Container().
-		From("koalaman/shellcheck-alpine:latest").
-		WithoutEntrypoint()
 }
