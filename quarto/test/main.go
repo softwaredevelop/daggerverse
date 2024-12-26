@@ -82,7 +82,7 @@ func (m *Quartotest) Build(ctx context.Context) error {
 	}
 
 	for _, file := range files {
-		re := regexp.MustCompile(`\.pdfxxx$`)
+		re := regexp.MustCompile(`\.pdf$`)
 		if re.MatchString(file.Name()) {
 			return nil
 		}

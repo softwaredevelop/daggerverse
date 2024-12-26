@@ -29,10 +29,12 @@ type Quarto struct {
 	// +private
 	Extensions []string
 	// +private
+	LatexPackages []string
+	// +private
 	Ctr *dagger.Container
 }
 
-// New creates a new instance of the Actionlint struct
+// New creates a new instance of the Quarto struct
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
@@ -40,10 +42,14 @@ func New(
 	// List of extensions to add to the container.
 	// +optional
 	extensions []string,
+	// List of optional LaTeX packages to install.
+	// +optional
+	latexPackages []string,
 ) *Quarto {
 	return &Quarto{
-		Image:      image,
-		Extensions: extensions,
+		Image:         image,
+		Extensions:    extensions,
+		LatexPackages: latexPackages,
 	}
 }
 
@@ -60,6 +66,13 @@ func (m *Quarto) Container() *dagger.Container {
 
 	ctr := dag.Container().From(image)
 
+	if strings.Contains(image, "quarto-full") {
+		for _, pkg := range m.LatexPackages {
+			ctr = ctr.WithExec([]string{"tlmgr", "install", pkg})
+		}
+	}
+
+	// Add Quarto extensions
 	for _, ext := range m.Extensions {
 		ctr = ctr.WithExec([]string{"quarto", "add", "--no-prompt", ext})
 	}
@@ -73,7 +86,6 @@ func (m *Quarto) Build(
 	// source directory.
 	source *dagger.Directory,
 ) *dagger.Directory {
-
 	return m.Container().
 		WithDirectory("/tmp", source).
 		WithWorkdir("/tmp").
@@ -85,7 +97,6 @@ func (m *Quarto) Render(
 	// source directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-
 	return m.Container().
 		WithDirectory("/tmp", source).
 		WithWorkdir("/tmp").
