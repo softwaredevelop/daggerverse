@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"dagger.io/dagger"
-	"dagger.io/dagger/dag"
 	"github.com/stretchr/testify/require"
 )
 
@@ -156,7 +155,7 @@ func base(
 		image = defaultImageRepository
 	}
 
-	ctr = dag.Container().From(image)
+	ctr = c.Container().From(image)
 
 	if strings.Contains(image, "quarto-full") {
 		for _, pkg := range latexpackages {
