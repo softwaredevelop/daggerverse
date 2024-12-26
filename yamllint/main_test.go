@@ -92,11 +92,11 @@ func base(
 	defaultImageRepository := "pipelinecomponents/yamllint"
 	var ctr *dagger.Container
 
-	if image != "" {
-		ctr = c.Container().From(image)
-	} else {
-		ctr = c.Container().From(defaultImageRepository)
+	if image == "" {
+		image = defaultImageRepository
 	}
+
+	ctr = c.Container().From(image)
 
 	return ctr
 }
