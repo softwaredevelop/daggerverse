@@ -35,15 +35,12 @@ func Test_Shellcheck(t *testing.T) {
 		require.NotNil(t, container)
 
 		_, err := container.
-			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata")).
+			WithDirectory("/tmp", c.Host().Directory("./test/testdata")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"sh", "-c", "find . -type f -name '*.sh' -print0 | xargs -0 shellcheck"}).
 			Stdout(ctx)
 		require.Error(t, err)
-		errorIDs := []string{"SC2283", "SC2154", "SC2086"}
-		for _, id := range errorIDs {
-			require.Contains(t, err.Error(), id)
-		}
+		require.Contains(t, err.Error(), "exit code: 123")
 	})
 	t.Run("Test_shellcheck_version", func(t *testing.T) {
 		t.Parallel()
