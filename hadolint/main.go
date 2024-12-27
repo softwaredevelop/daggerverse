@@ -17,8 +17,43 @@ import (
 	"dagger/hadolint/internal/dagger"
 )
 
+const (
+	defaultImageRepository = "hadolint/hadolint:latest-alpine"
+)
+
 // Hadolint is a module for checking Dockerfiles.
-type Hadolint struct{}
+type Hadolint struct {
+	// +private
+	Image string
+	// +private
+	Ctr *dagger.Container
+}
+
+// New creates a new instance of the Hadolint struct
+func New(
+	// Custom image reference in "repository:tag" format to use as a base container.
+	// +optional
+	image string,
+) *Hadolint {
+	return &Hadolint{
+		Image: image,
+	}
+}
+
+// Container returns the underlying Dagger container
+func (m *Hadolint) Container() *dagger.Container {
+	if m.Ctr != nil {
+		return m.Ctr
+	}
+
+	image := m.Image
+	if image == "" {
+		image = defaultImageRepository
+	}
+
+	m.Ctr = dag.Container().From(image)
+	return m.Ctr
+}
 
 // CheckWithConfig runs the hadolint-checker command with a configuration file.
 func (m *Hadolint) CheckWithConfig(
@@ -27,7 +62,7 @@ func (m *Hadolint) CheckWithConfig(
 	// file is an optional argument that specifies hadolint configuration file.
 	file *dagger.File,
 ) *dagger.Container {
-	return base().
+	return m.Container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithFile("/.config/.hadolint.yaml", file).
@@ -39,14 +74,8 @@ func (m *Hadolint) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return base().
+	return m.Container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint"})
-}
-
-// base returns a container with the hadolint binary installed.
-func base() *dagger.Container {
-	return dag.Container().
-		From("hadolint/hadolint:latest-alpine")
 }
