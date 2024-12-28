@@ -37,10 +37,7 @@ func Test_yamllint(t *testing.T) {
 		_, err := container.
 			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata")).
 			WithWorkdir("/tmp").
-			WithExec([]string{"yamllint",
-				"--config-file",
-				".yamllint",
-				"."}).
+			WithExec([]string{"sh", "-c", "find . -type f \\( -name '*.yaml' -o -name '*.yml' \\) -print0 | xargs -0 yamllint -c /tmp/.config/.yamllint"}).
 			Stderr(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "exit code: 1")
