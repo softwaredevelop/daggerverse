@@ -29,6 +29,22 @@ func Test_yamllint(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
+	t.Run("Test_yamllint_config_with_host_directory", func(t *testing.T) {
+		t.Parallel()
+		container := base("")
+		require.NotNil(t, container)
+
+		_, err := container.
+			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata")).
+			WithWorkdir("/tmp").
+			WithExec([]string{"yamllint",
+				"--config-file",
+				".yamllint",
+				"."}).
+			Stderr(ctx)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "exit code: 1")
+	})
 	t.Run("Test_yamllint_directory_with_host_directory", func(t *testing.T) {
 		t.Parallel()
 		container := base("")
