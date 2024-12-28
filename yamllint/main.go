@@ -55,6 +55,20 @@ func (m *Yamllint) Container() *dagger.Container {
 	return m.Ctr
 }
 
+// CheckWithConfig runs the yamllint command with a configuration file.
+func (m *Yamllint) CheckWithConfig(
+	// source is an optional argument that specifies a directory.
+	source *dagger.Directory,
+	// file is an optional argument that specifies yamllint configuration file.
+	file *dagger.File,
+) *dagger.Container {
+	return m.Container().
+		WithMountedDirectory("/tmp", source).
+		WithWorkdir("/tmp").
+		WithFile("/.config/.yamllint", file).
+		WithExec([]string{"sh", "-c", "find . -type f \\( -name '*.yaml' -o -name '*.yml' \\) -print0 | xargs -0 yamllint -c /.config/.yamllint"})
+}
+
 // Check runs yamllint on the provided source directory.
 func (m *Yamllint) Check(
 	// source is an optional argument that specifies a directory.

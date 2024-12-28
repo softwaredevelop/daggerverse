@@ -27,9 +27,27 @@ type Yamllinttest struct{}
 func (m *Yamllinttest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
+	p.Go(m.CheckWithConfig)
 	p.Go(m.Check)
 
 	return p.Wait()
+}
+
+// CheckWithConfig runs the yamllint command with a configuration file.
+func (m *Yamllinttest) CheckWithConfig(ctx context.Context) error {
+
+	dir := dag.CurrentModule().Source().Directory("./testdata")
+	file := dag.CurrentModule().Source().File("./testdata/.config/.yamllint")
+	_, err := dag.Yamllint().CheckWithConfig(dir, file).Stderr(ctx)
+
+	if err != nil {
+		re := regexp.MustCompile("exit code: 123")
+		if re.MatchString(err.Error()) {
+			return nil
+		}
+	}
+
+	return err
 }
 
 // Check runs the revive command.
