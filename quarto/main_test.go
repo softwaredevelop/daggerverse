@@ -39,7 +39,7 @@ func Test_Quarto(t *testing.T) {
 			WithDirectory("/tmp", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"quarto", "render"}).
-			Directory("/tmp/_book").Sync(ctx)
+			Directory("/tmp/_output").Sync(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, out)
 
@@ -81,7 +81,7 @@ func Test_Quarto(t *testing.T) {
 			WithDirectory("/tmp", c.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"quarto", "render"}).
-			WithExec([]string{"ls", "-1", "_book"}).
+			WithExec([]string{"ls", "-1", "_output"}).
 			Stdout(ctx)
 		require.NoError(t, err)
 		require.Regexp(t, `\.pdf\s*$`, out)
