@@ -89,7 +89,7 @@ func (m *Quarto) Build(
 	return m.Container().
 		WithDirectory("/tmp", source).
 		WithWorkdir("/tmp").
-		WithExec([]string{"quarto", "render"}).Directory("/tmp/_book")
+		WithExec([]string{"quarto", "render"}).Directory("/tmp/_output")
 }
 
 // Render runs the quarto render command
