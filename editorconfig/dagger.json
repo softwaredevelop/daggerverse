@@ -1,6 +1,7 @@
 {
   "name": "editorconfig",
-  "engineVersion": "v0.15.3",
-  "sdk": "go",
-  "source": "."
+  "engineVersion": "v0.16.2",
+  "sdk": {
+    "source": "go"
+  }
 }

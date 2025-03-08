@@ -1,12 +1,13 @@
 {
   "name": "yamllint/test",
-  "engineVersion": "v0.15.3",
-  "sdk": "go",
+  "engineVersion": "v0.16.2",
+  "sdk": {
+    "source": "go"
+  },
   "dependencies": [
     {
       "name": "yamllint",
       "source": ".."
     }
-  ],
-  "source": "."
+  ]
 }
