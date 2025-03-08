@@ -1,12 +1,13 @@
 {
   "name": "hadolint/test",
-  "engineVersion": "v0.15.3",
-  "sdk": "go",
+  "engineVersion": "v0.16.2",
+  "sdk": {
+    "source": "go"
+  },
   "dependencies": [
     {
       "name": "hadolint",
       "source": ".."
     }
-  ],
-  "source": "."
+  ]
 }
