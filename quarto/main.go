@@ -20,6 +20,7 @@ import (
 
 const (
 	defaultImageRepository = "ghcr.io/quarto-dev/quarto"
+	tlmgrUpdateURL         = "https://mirror.ctan.org/systems/texlive/tlnet/update-tlmgr-latest.sh"
 )
 
 // Quarto is a module for running Quarto
@@ -67,6 +68,13 @@ func (m *Quarto) Container() *dagger.Container {
 	ctr := dag.Container().From(image)
 
 	if strings.Contains(image, "quarto-full") {
+		// Update tlmgr
+		ctr = ctr.WithExec([]string{
+			"sh", "-c",
+			"curl -fsSL " + tlmgrUpdateURL + " -o update-tlmgr-latest.sh && sh update-tlmgr-latest.sh -- --update",
+		})
+
+		// Install specified LaTeX packages
 		for _, pkg := range m.LatexPackages {
 			ctr = ctr.WithExec([]string{"tlmgr", "install", pkg})
 		}
