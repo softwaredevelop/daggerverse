@@ -20,5 +20,5 @@ indent_style = tab
 [dagger.json]
 indent_size = 2
 
-[.ecrc]
+[.editorconfig-checker.json]
 indent_size = 2

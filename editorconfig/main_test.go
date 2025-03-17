@@ -2,7 +2,6 @@ package main_test
 
 import (
 	"context"
-	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,19 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var c *dagger.Client
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
+func getClient() (*dagger.Client, error) {
 	ctx := context.Background()
-
-	c, _ = dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
-	defer c.Close()
-
-	code := m.Run()
-	defer c.Close()
-	os.Exit(code)
+	return dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
 }
 
 func Test_Editorconfig(t *testing.T) {
@@ -32,7 +21,12 @@ func Test_Editorconfig(t *testing.T) {
 
 	t.Run("Test_mounted_host_directory_without_git_directory", func(t *testing.T) {
 		t.Parallel()
-		container := base("")
+
+		client, err := getClient()
+		require.NoError(t, err)
+		t.Cleanup(func() { client.Close() })
+
+		container := base("", client)
 		require.NotNil(t, container)
 
 		dir, err := os.Getwd()
@@ -40,7 +34,7 @@ func Test_Editorconfig(t *testing.T) {
 		require.NotEmpty(t, dir)
 
 		out, err := container.
-			WithMountedDirectory("/tmp", c.Host().Directory(filepath.Join(dir, ".."), dagger.HostDirectoryOpts{
+			WithMountedDirectory("/tmp", client.Host().Directory(filepath.Join(dir, ".."), dagger.HostDirectoryOpts{
 				Exclude: []string{".git"},
 			})).
 			WithWorkdir("/tmp").
@@ -52,11 +46,16 @@ func Test_Editorconfig(t *testing.T) {
 	})
 	t.Run("Test_mounted_host_directory", func(t *testing.T) {
 		t.Parallel()
-		container := base("")
+
+		client, err := getClient()
+		require.NoError(t, err)
+		t.Cleanup(func() { client.Close() })
+
+		container := base("", client)
 		require.NotNil(t, container)
 
 		out, err := container.
-			WithMountedDirectory("/tmp", c.Host().Directory("./test/testdata/")).
+			WithMountedDirectory("/tmp", client.Host().Directory("./test/testdata/")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"ec", "-dry-run"}).
 			Stdout(ctx)
@@ -65,10 +64,15 @@ func Test_Editorconfig(t *testing.T) {
 	})
 	t.Run("Test_editorconfig-checker_help", func(t *testing.T) {
 		t.Parallel()
-		container := base("")
+
+		client, err := getClient()
+		require.NoError(t, err)
+		t.Cleanup(func() { client.Close() })
+
+		container := base("", client)
 		require.NotNil(t, container)
 
-		_, err := container.
+		_, err = container.
 			WithExec([]string{"ec", "-help"}).
 			Stderr(ctx)
 		require.NoError(t, err)
@@ -77,6 +81,7 @@ func Test_Editorconfig(t *testing.T) {
 
 func base(
 	image string,
+	client *dagger.Client,
 ) *dagger.Container {
 
 	defaultImageRepository := "mstruebing/editorconfig-checker"
@@ -86,7 +91,7 @@ func base(
 		image = defaultImageRepository
 	}
 
-	ctr = c.Container().From(image)
+	ctr = client.Container().From(image)
 
 	return ctr
 }
