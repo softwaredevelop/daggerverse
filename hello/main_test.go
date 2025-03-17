@@ -2,7 +2,6 @@ package main_test
 
 import (
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -10,19 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var c *dagger.Client
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
+func getClient() (*dagger.Client, error) {
 	ctx := context.Background()
-
-	c, _ = dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
-	defer c.Close()
-
-	code := m.Run()
-	defer c.Close()
-	os.Exit(code)
+	return dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
 }
 
 func Test_Hello(t *testing.T) {
@@ -31,8 +20,13 @@ func Test_Hello(t *testing.T) {
 
 	t.Run("Test_hello_container", func(t *testing.T) {
 		t.Parallel()
+
+		client, err := getClient()
+		require.NoError(t, err)
+		t.Cleanup(func() { client.Close() })
+
 		stringArg := "Hello, Daggerverse!"
-		out, err := c.Container().
+		out, err := client.Container().
 			From("busybox:uclibc").
 			WithExec([]string{"echo", stringArg}).
 			Stdout(ctx)
