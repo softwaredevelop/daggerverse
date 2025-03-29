@@ -2,7 +2,6 @@ package main_test
 
 import (
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -10,19 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var c *dagger.Client
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
+func getClient() (*dagger.Client, error) {
 	ctx := context.Background()
-
-	c, _ = dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
-	defer c.Close()
-
-	code := m.Run()
-	defer c.Close()
-	os.Exit(code)
+	return dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
 }
 
 func Test_Shellcheck(t *testing.T) {
@@ -31,11 +20,16 @@ func Test_Shellcheck(t *testing.T) {
 
 	t.Run("Test_mounted_host_directory_check", func(t *testing.T) {
 		t.Parallel()
-		container := base("")
+
+		client, err := getClient()
+		require.NoError(t, err)
+		t.Cleanup(func() { client.Close() })
+
+		container := base("", client)
 		require.NotNil(t, container)
 
-		_, err := container.
-			WithDirectory("/tmp", c.Host().Directory("./test/testdata")).
+		_, err = container.
+			WithDirectory("/tmp", client.Host().Directory("./test/testdata")).
 			WithWorkdir("/tmp").
 			WithExec([]string{"sh", "-c", "find . -type f -name '*.sh' -print0 | xargs -0 shellcheck"}).
 			Stdout(ctx)
@@ -44,7 +38,12 @@ func Test_Shellcheck(t *testing.T) {
 	})
 	t.Run("Test_shellcheck_version", func(t *testing.T) {
 		t.Parallel()
-		container := base("")
+
+		client, err := getClient()
+		require.NoError(t, err)
+		t.Cleanup(func() { client.Close() })
+
+		container := base("", client)
 		require.NotNil(t, container)
 
 		out, err := container.
@@ -57,6 +56,7 @@ func Test_Shellcheck(t *testing.T) {
 
 func base(
 	image string,
+	client *dagger.Client,
 ) *dagger.Container {
 
 	defaultImageRepository := "koalaman/shellcheck-alpine"
@@ -66,7 +66,7 @@ func base(
 		image = defaultImageRepository
 	}
 
-	ctr = c.Container().From(image)
+	ctr = client.Container().From(image)
 
 	return ctr
 }
