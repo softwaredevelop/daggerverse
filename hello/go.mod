@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	dagger.io/dagger v0.12.4
-	github.com/99designs/gqlgen v0.17.66
+	github.com/99designs/gqlgen v0.17.68
 	github.com/Khan/genqlient v0.8.0
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.23
