@@ -45,7 +45,7 @@ func New(
 }
 
 // Container returns the underlying Dagger container
-func (m *Hello) Container() *dagger.Container {
+func (m *Hello) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
 	}
@@ -64,7 +64,7 @@ func (m *Hello) HelloString(
 	// StringArg is the string value to be printed.
 	StringArg string,
 ) *dagger.Container {
-	return m.Container().
+	return m.container().
 		WithExec([]string{"echo", StringArg})
 }
 
@@ -73,7 +73,7 @@ func (m *Hello) HelloContainer(
 	// StringArg is the string value to be printed.
 	StringArg string,
 ) *dagger.Container {
-	return m.Container().
+	return m.container().
 		From("cgr.dev/chainguard/wolfi-base:latest").
 		WithExec([]string{"echo", StringArg})
 }

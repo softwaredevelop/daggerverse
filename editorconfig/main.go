@@ -41,7 +41,7 @@ func New(
 }
 
 // Container returns the underlying Dagger container
-func (m *Editorconfig) Container() *dagger.Container {
+func (m *Editorconfig) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
 	}
@@ -64,7 +64,7 @@ func (m *Editorconfig) Check(
 	excludeDirectoryPattern string,
 ) *dagger.Container {
 
-	return m.Container().
+	return m.container().
 		WithMountedDirectory("/tmp", source.WithoutDirectory(excludeDirectoryPattern)).
 		WithWorkdir("/tmp").
 		WithExec([]string{"ec"})

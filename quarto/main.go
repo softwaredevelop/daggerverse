@@ -55,7 +55,7 @@ func New(
 }
 
 // Container returns the underlying Dagger container
-func (m *Quarto) Container() *dagger.Container {
+func (m *Quarto) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
 	}
@@ -94,7 +94,7 @@ func (m *Quarto) Build(
 	// source directory.
 	source *dagger.Directory,
 ) *dagger.Directory {
-	return m.Container().
+	return m.container().
 		WithDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"quarto", "render"}).Directory("/tmp/_output")
@@ -105,7 +105,7 @@ func (m *Quarto) Render(
 	// source directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return m.Container().
+	return m.container().
 		WithDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"quarto", "render"})
@@ -118,6 +118,6 @@ func (m *Quarto) Cli(
 ) *dagger.Container {
 	parsedArgs := strings.Split(args, " ")
 
-	return m.Container().
+	return m.container().
 		WithExec(parsedArgs)
 }

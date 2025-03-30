@@ -41,7 +41,7 @@ func New(
 }
 
 // Container returns the underlying Dagger container
-func (m *Hadolint) Container() *dagger.Container {
+func (m *Hadolint) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
 	}
@@ -62,7 +62,7 @@ func (m *Hadolint) CheckWithConfig(
 	// file is an optional argument that specifies hadolint configuration file.
 	file *dagger.File,
 ) *dagger.Container {
-	return m.Container().
+	return m.container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithFile("/.config/.hadolint.yaml", file).
@@ -74,7 +74,7 @@ func (m *Hadolint) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return m.Container().
+	return m.container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint"})
