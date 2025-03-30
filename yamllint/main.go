@@ -41,7 +41,7 @@ func New(
 }
 
 // Container returns the underlying Dagger container
-func (m *Yamllint) Container() *dagger.Container {
+func (m *Yamllint) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
 	}
@@ -62,7 +62,7 @@ func (m *Yamllint) CheckWithConfig(
 	// file is an optional argument that specifies yamllint configuration file.
 	file *dagger.File,
 ) *dagger.Container {
-	return m.Container().
+	return m.container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithFile("/.config/.yamllint", file).
@@ -74,7 +74,7 @@ func (m *Yamllint) Check(
 	// source is an optional argument that specifies a directory.
 	source *dagger.Directory,
 ) *dagger.Container {
-	return m.Container().
+	return m.container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"yamllint",

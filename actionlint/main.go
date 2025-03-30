@@ -41,7 +41,7 @@ func New(
 }
 
 // Container returns the underlying Dagger container
-func (m *Actionlint) Container() *dagger.Container {
+func (m *Actionlint) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
 	}
@@ -61,7 +61,7 @@ func (m *Actionlint) Check(
 	source *dagger.Directory,
 ) *dagger.Container {
 
-	return m.Container().
+	return m.container().
 		WithMountedDirectory("/tmp", source).
 		WithWorkdir("/tmp").
 		WithExec([]string{"sh", "-c", "find . -type f -name '*.yml' -print0 | xargs -0 actionlint"})
