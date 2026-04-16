@@ -3,7 +3,7 @@ module dagger/shellcheck
 go 1.25.0
 
 require (
-	dagger.io/dagger v0.20.5-0.20260409204156-6e4822e59cbb
+	dagger.io/dagger v0.20.6-0.20260415192040-7058e9313c72
 	github.com/Khan/genqlient v0.8.1
 	github.com/dagger/otel-go v1.41.0
 	github.com/vektah/gqlparser/v2 v2.5.32
