@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	dagger.io/dagger v0.20.5-0.20260409204156-6e4822e59cbb
+	dagger.io/dagger v0.20.6-0.20260415192040-7058e9313c72
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.17.0 // indirect
