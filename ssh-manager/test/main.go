@@ -11,7 +11,6 @@
 // The first line in this comment block is a short description line and the
 // rest is a long description with more detail on the module's purpose or usage,
 // if appropriate. All modules should have a short description.
-
 package main
 
 import (
@@ -23,7 +22,7 @@ import (
 	"github.com/sourcegraph/conc/pool"
 )
 
-type SshManagertest struct{}
+type SshManagertest struct{} //revive:disable-line
 
 // All runs all SSH key generation tests in parallel.
 func (m *SshManagertest) All(ctx context.Context) error {
