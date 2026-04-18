@@ -1,3 +1,4 @@
+// SSH Manager module for generating secure SSH key pairs and configurations.
 package main
 
 import (
@@ -15,89 +16,22 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type SshManager struct{}
+// SshManager provides services to generate and manage SSH identities.
+type SshManager struct{} //revive:disable-line
 
+// KeyResult represents the collection of generated SSH components.
 type KeyResult struct {
-	PublicKey  *dagger.File      `json:"publicKey"`
-	PrivateKey *dagger.Secret    `json:"privateKey"`
-	Config     *dagger.File      `json:"config"`
-	Files      *dagger.Directory `json:"files"`
+	// The OpenSSH formatted public key file.
+	PublicKey *dagger.File `json:"publicKey"`
+	// The OpenSSH formatted private key, stored as a secret.
+	PrivateKey *dagger.Secret `json:"privateKey"`
+	// The SSH configuration file containing host and proxy settings.
+	Config *dagger.File `json:"config"`
+	// A directory containing the private key, public key, and config for easy export.
+	Files *dagger.Directory `json:"files"`
 }
 
-// func (m *SshManager) GenerateRsa(
-// 	ctx context.Context,
-// 	remoteHost string,
-// 	remoteUser string,
-// 	// +optional
-// 	// +default="dagger"
-// 	localHostname string,
-// 	// +optional
-// 	// +default=4096
-// 	bits int,
-// 	// +optional
-// 	autoPassphrase bool,
-// 	// +optional
-// 	existingConfig *dagger.File,
-// ) (*KeyResult, error) {
-// 	priv, err := rsa.GenerateKey(rand.Reader, bits)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return m.finalize(ctx, priv, priv.Public(), "rsa", remoteHost, remoteUser, localHostname, autoPassphrase, existingConfig)
-// }
-
-/* func (m *SshManager) GenerateEd25519(
-	ctx context.Context,
-	remoteHost string,
-	remoteUser string,
-	// +optional
-	// +default="dagger"
-	localHostname string,
-	// +optional
-	autoPassphrase bool,
-	// +optional
-	existingConfig *dagger.File,
-) (*KeyResult, error) {
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		return nil, err
-	}
-	return m.finalize(ctx, priv, pub, "ed25519", remoteHost, remoteUser, localHostname, autoPassphrase, existingConfig)
-} */
-
-// func (m *SshManager) GenerateEcdsa(
-// 	ctx context.Context,
-// 	remoteHost string,
-// 	remoteUser string,
-// 	// +optional
-// 	// +default="dagger"
-// 	localHostname string,
-// 	// +optional
-// 	// +default=521
-// 	bits int,
-// 	// +optional
-// 	autoPassphrase bool,
-// 	// +optional
-// 	existingConfig *dagger.File,
-// ) (*KeyResult, error) {
-// 	var curve elliptic.Curve
-// 	switch bits {
-// 	case 256:
-// 		curve = elliptic.P256()
-// 	case 384:
-// 		curve = elliptic.P384()
-// 	case 521:
-// 		curve = elliptic.P521()
-// 	default:
-// 		return nil, fmt.Errorf("invalid bits for ecdsa")
-// 	}
-// 	priv, err := ecdsa.GenerateKey(curve, rand.Reader)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return m.finalize(ctx, priv, priv.Public(), "ecdsa", remoteHost, remoteUser, localHostname, autoPassphrase, existingConfig)
-// }
-
+// finalize is an internal helper to process raw keys into formatted files and secrets.
 func (m *SshManager) finalize(
 	ctx context.Context,
 	priv any,
@@ -169,6 +103,7 @@ func (m *SshManager) finalize(
 	}, nil
 }
 
+// randomString generates a cryptographically secure random string for passphrases.
 func (m *SshManager) randomString(n int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
 	ret := make([]byte, n)
