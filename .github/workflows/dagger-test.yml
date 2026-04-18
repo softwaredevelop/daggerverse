@@ -16,6 +16,7 @@ on:
       - "revive/**"
       - "ruff/**"
       - "shellcheck/**"
+      - "ssh-manager/**"
       - "yamllint/**"
 
 concurrency:
@@ -68,7 +69,8 @@ jobs:
         uses: dagger/dagger-for-github@v8.4.1
         with:
           args: ${{ steps.constructor-args.outputs.value }} all
-          module: github.com/${{ github.repository }}/${{ matrix.module }}/test@${{ github.ref }}
+          module: github.com/${{ github.repository }}/${{ matrix.module }}/test@${{
+            github.ref }}
           verb: call
           version: latest
         env:
