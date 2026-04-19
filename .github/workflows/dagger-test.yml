@@ -49,6 +49,7 @@ jobs:
           - revive
           - ruff
           - shellcheck
+          - ssh-manager
           - yamllint
 
     steps:
