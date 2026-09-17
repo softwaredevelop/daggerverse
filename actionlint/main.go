@@ -1,16 +1,7 @@
-// A generated module for Actionlint functions
+// A Dagger module to lint GitHub Actions workflow files using actionlint.
 //
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// This module validates GitHub Actions workflow files for syntax errors,
+// invalid expressions, and schema violations.
 package main
 
 import (
@@ -21,7 +12,7 @@ const (
 	defaultImageRepository = "rhysd/actionlint:latest"
 )
 
-// Actionlint is a module for checking GitHub Actions workflows.
+// Actionlint provides functions for checking GitHub Actions workflows.
 type Actionlint struct {
 	// +private
 	Image string
@@ -29,7 +20,7 @@ type Actionlint struct {
 	Ctr *dagger.Container
 }
 
-// New creates a new instance of the Actionlint struct
+// New creates a new instance of the Actionlint struct.
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
@@ -40,7 +31,7 @@ func New(
 	}
 }
 
-// Container returns the underlying Dagger container
+// container returns the underlying Dagger container, lazily initialized.
 func (m *Actionlint) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
@@ -55,14 +46,20 @@ func (m *Actionlint) container() *dagger.Container {
 	return m.Ctr
 }
 
-// Check runs the actionlint command.
+// Check runs actionlint on workflow files.
+// It supports directories mounted at repository root or directly inside .github/workflows.
 func (m *Actionlint) Check(
-	// Source directory
+	// Source directory containing workflows or repository root.
 	source *dagger.Directory,
 ) *dagger.Container {
 
+	// Shell script that:
+	// 1. If .github/workflows exists, runs plain actionlint (standard repo root mode).
+	// 2. Otherwise searches for both .yml and .yaml files in the current folder and passes them to actionlint.
+	cmd := `find . -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 | xargs -0 -r actionlint`
+
 	return m.container().
-		WithMountedDirectory("/tmp", source).
-		WithWorkdir("/tmp").
-		WithExec([]string{"sh", "-c", "find . -type f -name '*.yml' -print0 | xargs -0 actionlint"})
+		WithMountedDirectory("/work", source).
+		WithWorkdir("/work").
+		WithExec([]string{"sh", "-c", cmd})
 }

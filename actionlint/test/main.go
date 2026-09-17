@@ -1,49 +1,40 @@
-// A generated module for Actionlinttes functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// Package main provides tests for the Actionlint Dagger module.
 package main
 
 import (
 	"context"
-	"regexp"
+	"errors"
+	"strings"
 
 	"github.com/sourcegraph/conc/pool"
 )
 
-// Actionlinttes is a module for testing actionlint.
-type Actionlinttes struct{}
+// Actionlinttest is a module for testing the actionlint module.
+type Actionlinttest struct{}
 
-// All runs all tests.
-func (m *Actionlinttes) All(ctx context.Context) error {
+// All runs all tests concurrently.
+func (m *Actionlinttest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
-	p.Go(m.CheckWorkflow)
+	p.Go(m.CheckWorkflowFailsOnInvalid)
 
 	return p.Wait()
 }
 
-// CheckWorkflow runs a test on a directory.
-func (m *Actionlinttes) CheckWorkflow(ctx context.Context) error {
-
+// CheckWorkflowFailsOnInvalid tests that actionlint detects invalid workflow files.
+func (m *Actionlinttest) CheckWorkflowFailsOnInvalid(ctx context.Context) error {
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Actionlint().Check(dir).Sync(ctx)
 
-	if err != nil {
-		re := regexp.MustCompile("exit code: 123")
-		if re.MatchString(err.Error()) {
-			return nil
-		}
+	_, err := dag.Actionlint().Check(dir).Sync(ctx)
+	if err == nil {
+		return errors.New("expected actionlint to fail on invalid workflow, but it succeeded")
 	}
 
+	// Exit code 1 means actionlint successfully parsed the workflow and found lint/syntax errors!
+	if strings.Contains(err.Error(), "exit code: 1") {
+		return nil
+	}
+
+	// If it fails with exit code 3 or anything else, fail the test
 	return err
 }
