@@ -1,66 +1,53 @@
-// A generated module for Editorconfigtest functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// Package main provides test suites for the Editorconfig Dagger module.
 package main
 
 import (
 	"context"
 	"dagger/editorconfig/test/internal/dagger"
-	"regexp"
+	"errors"
+	"strings"
 
 	"github.com/sourcegraph/conc/pool"
 )
 
-// Editorconfigtest is a module for checking editorconfig files.
+// Editorconfigtest provides test functions for the editorconfig module.
 type Editorconfigtest struct{}
 
-// All runs all tests.
+// All runs all test cases concurrently.
 func (m *Editorconfigtest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
-	p.Go(m.Check)
+	p.Go(m.CheckFailsOnInvalidFiles)
 	p.Go(m.CheckExcludeDirectory)
 
 	return p.Wait()
 }
 
-// CheckExcludeDirectory runs the editorconfig-checker command with a pattern to exclude directories.
+// CheckExcludeDirectory tests that excluding a directory prevents failures.
 func (m *Editorconfigtest) CheckExcludeDirectory(ctx context.Context) error {
-
 	dir := dag.CurrentModule().Source().Directory("./testdata")
+
 	_, err := dag.Editorconfig().Check(dir, dagger.EditorconfigCheckOpts{
 		ExcludeDirectoryPattern: ".testdata",
 	}).Sync(ctx)
 
-	if err != nil {
+	return err
+}
+
+// CheckFailsOnInvalidFiles tests that editorconfig-checker properly reports formatting errors.
+func (m *Editorconfigtest) CheckFailsOnInvalidFiles(ctx context.Context) error {
+	dir := dag.CurrentModule().Source().Directory("./testdata")
+
+	_, err := dag.Editorconfig().Check(dir).Sync(ctx)
+	if err == nil {
+		// If there is no error, the test MUST fail because testdata is intentionally invalid!
+		return errors.New("expected editorconfig-checker to fail on invalid files, but it succeeded")
+	}
+
+	// Verify that it failed due to linting violations (exit code 1) and not a container/runtime failure
+	if !strings.Contains(err.Error(), "exit code: 1") {
 		return err
 	}
 
 	return nil
-}
-
-// Check runs the editorconfig-checker command.
-func (m *Editorconfigtest) Check(ctx context.Context) error {
-
-	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Editorconfig().Check(dir).Sync(ctx)
-
-	if err != nil {
-		re := regexp.MustCompile("exit code: 1")
-		if re.MatchString(err.Error()) {
-			return nil
-		}
-	}
-
-	return err
 }
