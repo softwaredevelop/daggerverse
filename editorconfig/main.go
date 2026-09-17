@@ -67,5 +67,5 @@ func (m *Editorconfig) Check(
 	return m.container().
 		WithMountedDirectory("/tmp", source.WithoutDirectory(excludeDirectoryPattern)).
 		WithWorkdir("/tmp").
-		WithExec([]string{"ec"})
+		WithExec([]string{"editorconfig-checker"})
 }
