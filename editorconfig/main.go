@@ -1,16 +1,8 @@
-// A generated module for Editorconfig functions
+// A Dagger module to validate files against an .editorconfig specification.
 //
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// This module wraps the editorconfig-checker tool to ensure codebases adhere
+// to formatting rules defined in their .editorconfig files. It can be easily
+// integrated into local developer workflows or CI/CD pipelines (such as GitHub Actions).
 package main
 
 import (
@@ -21,7 +13,7 @@ const (
 	defaultImageRepository = "mstruebing/editorconfig-checker:latest"
 )
 
-// Editorconfig is a module for checking editorconfig files.
+// Editorconfig provides functions to run editorconfig checks.
 type Editorconfig struct {
 	// +private
 	Image string
@@ -29,7 +21,7 @@ type Editorconfig struct {
 	Ctr *dagger.Container
 }
 
-// New creates a new instance of the Editorconfig struct
+// New creates a new instance of the Editorconfig module.
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
@@ -40,7 +32,7 @@ func New(
 	}
 }
 
-// Container returns the underlying Dagger container
+// container returns the underlying Dagger container, lazily initialized.
 func (m *Editorconfig) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
@@ -55,17 +47,25 @@ func (m *Editorconfig) container() *dagger.Container {
 	return m.Ctr
 }
 
-// Check runs the editorconfig-checker command.
+// Check runs the editorconfig-checker command on the target directory.
+// It returns the container allowing callers to chain methods such as stderr, stdout, or sync.
 func (m *Editorconfig) Check(
-	// Source directory
+	// Source directory to validate.
 	source *dagger.Directory,
-	// excludeDirectoryPattern is an optional argument that specifies a pattern to exclude directories.
+	// A relative directory path to exclude from the check (defaults to ".git").
 	// +default=".git"
+	// +optional
 	excludeDirectoryPattern string,
 ) *dagger.Container {
 
+	src := source
+	// Only exclude the path if a non-empty string is provided to prevent runtime errors
+	if excludeDirectoryPattern != "" {
+		src = src.WithoutDirectory(excludeDirectoryPattern)
+	}
+
 	return m.container().
-		WithMountedDirectory("/tmp", source.WithoutDirectory(excludeDirectoryPattern)).
-		WithWorkdir("/tmp").
+		WithMountedDirectory("/work", src).
+		WithWorkdir("/work").
 		WithExec([]string{"editorconfig-checker"})
 }
