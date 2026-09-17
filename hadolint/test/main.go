@@ -1,29 +1,18 @@
-// A generated module for Hadolinttest functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// Package main provides tests for the Hadolint Dagger module.
 package main
 
 import (
 	"context"
-	"regexp"
+	"errors"
+	"strings"
 
 	"github.com/sourcegraph/conc/pool"
 )
 
-// Hadolinttest is a module for checking hadolint files.
+// Hadolinttest provides test functions for the hadolint module.
 type Hadolinttest struct{}
 
-// All runs all tests.
+// All runs all tests concurrently.
 func (m *Hadolinttest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
@@ -33,34 +22,36 @@ func (m *Hadolinttest) All(ctx context.Context) error {
 	return p.Wait()
 }
 
-// CheckWithConfig runs the hadolint-checker command with a configuration file.
+// CheckWithConfig tests hadolint with an explicit configuration file.
 func (m *Hadolinttest) CheckWithConfig(ctx context.Context) error {
-
 	dir := dag.CurrentModule().Source().Directory("./testdata")
 	file := dag.CurrentModule().Source().File("./testdata/.config/.hadolint.yaml")
-	_, err := dag.Hadolint().CheckWithConfig(dir, file).Stderr(ctx)
 
-	if err != nil {
-		re := regexp.MustCompile("exit code: 123")
-		if re.MatchString(err.Error()) {
-			return nil
-		}
+	_, err := dag.Hadolint().CheckWithConfig(dir, file).Stderr(ctx)
+	if err == nil {
+		return errors.New("expected hadolint to fail on invalid Dockerfile, but it succeeded")
+	}
+
+	// xargs exits with 123 when the underlying linter fails
+	if strings.Contains(err.Error(), "exit code: 123") || strings.Contains(err.Error(), "exit code: 1") {
+		return nil
 	}
 
 	return err
 }
 
-// Check runs the hadolint-checker command.
+// Check tests hadolint on invalid testdata without explicit configuration.
 func (m *Hadolinttest) Check(ctx context.Context) error {
-
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Hadolint().Check(dir).Stderr(ctx)
 
-	if err != nil {
-		re := regexp.MustCompile("exit code: 123")
-		if re.MatchString(err.Error()) {
-			return nil
-		}
+	_, err := dag.Hadolint().Check(dir).Stderr(ctx)
+	if err == nil {
+		return errors.New("expected hadolint to fail on invalid Dockerfile, but it succeeded")
+	}
+
+	// xargs exits with 123 when the underlying linter fails
+	if strings.Contains(err.Error(), "exit code: 123") || strings.Contains(err.Error(), "exit code: 1") {
+		return nil
 	}
 
 	return err

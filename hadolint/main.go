@@ -1,16 +1,7 @@
-// A generated module for Hadolint functions
+// A Dagger module to lint Dockerfiles using hadolint.
 //
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// This module inspects Dockerfiles for best practices, security issues,
+// and style violations using hadolint.
 package main
 
 import (
@@ -21,7 +12,7 @@ const (
 	defaultImageRepository = "hadolint/hadolint:latest-alpine"
 )
 
-// Hadolint is a module for checking Dockerfiles.
+// Hadolint provides functions for linting Dockerfiles.
 type Hadolint struct {
 	// +private
 	Image string
@@ -29,7 +20,7 @@ type Hadolint struct {
 	Ctr *dagger.Container
 }
 
-// New creates a new instance of the Hadolint struct
+// New creates a new instance of the Hadolint struct.
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
@@ -40,7 +31,7 @@ func New(
 	}
 }
 
-// Container returns the underlying Dagger container
+// container returns the underlying Dagger container, lazily initialized.
 func (m *Hadolint) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
@@ -55,27 +46,38 @@ func (m *Hadolint) container() *dagger.Container {
 	return m.Ctr
 }
 
-// CheckWithConfig runs the hadolint-checker command with a configuration file.
-func (m *Hadolint) CheckWithConfig(
-	// source is an optional argument that specifies a directory.
+// Check runs hadolint on Dockerfiles found in the directory.
+// It supports Dockerfile, Dockerfile.*, *.dockerfile, and Containerfile naming conventions.
+func (m *Hadolint) Check(
+	// Source directory containing Dockerfiles.
 	source *dagger.Directory,
-	// file is an optional argument that specifies hadolint configuration file.
-	file *dagger.File,
+	// Optional hadolint configuration file (e.g. .hadolint.yaml).
+	// +optional
+	config *dagger.File,
 ) *dagger.Container {
-	return m.container().
-		WithMountedDirectory("/tmp", source).
-		WithWorkdir("/tmp").
-		WithFile("/.config/.hadolint.yaml", file).
-		WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint --config /.config/.hadolint.yaml"})
+	ctr := m.container().
+		WithMountedDirectory("/work", source).
+		WithWorkdir("/work")
+
+	configArg := ""
+	if config != nil {
+		ctr = ctr.WithFile("/etc/hadolint.yaml", config)
+		configArg = "--config /etc/hadolint.yaml "
+	}
+
+	// Finds all standard Dockerfile and Containerfile variants safely
+	cmd := "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' -o -name '*.dockerfile' -o -name 'Containerfile*' \\) -print0 | xargs -0 -r hadolint " + configArg
+
+	return ctr.WithExec([]string{"sh", "-c", cmd})
 }
 
-// Check runs the hadolint-checker command.
-func (m *Hadolint) Check(
-	// source is an optional argument that specifies a directory.
+// CheckWithConfig runs hadolint with a specific configuration file.
+// Maintained for explicit backwards compatibility.
+func (m *Hadolint) CheckWithConfig(
+	// Source directory containing Dockerfiles.
 	source *dagger.Directory,
+	// Configuration file for hadolint.
+	file *dagger.File,
 ) *dagger.Container {
-	return m.container().
-		WithMountedDirectory("/tmp", source).
-		WithWorkdir("/tmp").
-		WithExec([]string{"sh", "-c", "find . -type f \\( -name 'Dockerfile' -o -name 'Dockerfile.*' \\) -print0 | xargs -0 hadolint"})
+	return m.Check(source, file)
 }
