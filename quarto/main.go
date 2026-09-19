@@ -1,16 +1,7 @@
-// A generated module for Quarto functions
+// A Dagger module for authoring, rendering, and publishing Quarto projects.
 //
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// This module provides tools to render Quarto documents, books, websites,
+// install custom Quarto extensions, and manage LaTeX packages via TeX Live.
 package main
 
 import (
@@ -19,11 +10,11 @@ import (
 )
 
 const (
-	defaultImageRepository = "ghcr.io/quarto-dev/quarto"
+	defaultImageRepository = "ghcr.io/quarto-dev/quarto:latest"
 	tlmgrUpdateURL         = "https://mirror.ctan.org/systems/texlive/tlnet/update-tlmgr-latest.sh"
 )
 
-// Quarto is a module for running Quarto
+// Quarto provides functions for running and compiling Quarto projects.
 type Quarto struct {
 	// +private
 	Image string
@@ -35,15 +26,15 @@ type Quarto struct {
 	Ctr *dagger.Container
 }
 
-// New creates a new instance of the Quarto struct
+// New creates a new instance of the Quarto module.
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
 	image string,
-	// List of extensions to add to the container.
+	// List of Quarto extensions to install (e.g. "quarto-ext/lightbox").
 	// +optional
 	extensions []string,
-	// List of optional LaTeX packages to install.
+	// List of optional LaTeX packages to install via tlmgr (requires a TeX-enabled image like quarto-full).
 	// +optional
 	latexPackages []string,
 ) *Quarto {
@@ -54,7 +45,7 @@ func New(
 	}
 }
 
-// Container returns the underlying Dagger container
+// container returns the underlying Dagger container, lazily initialized.
 func (m *Quarto) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
@@ -67,20 +58,19 @@ func (m *Quarto) container() *dagger.Container {
 
 	ctr := dag.Container().From(image)
 
-	if strings.Contains(image, "quarto-full") {
-		// Update tlmgr
+	// Only update tlmgr and install packages if LaTeX packages are explicitly requested
+	if len(m.LatexPackages) > 0 {
 		ctr = ctr.WithExec([]string{
 			"sh", "-c",
 			"curl -fsSL " + tlmgrUpdateURL + " -o update-tlmgr-latest.sh && sh update-tlmgr-latest.sh -- --update",
 		})
 
-		// Install specified LaTeX packages
-		for _, pkg := range m.LatexPackages {
-			ctr = ctr.WithExec([]string{"tlmgr", "install", pkg})
-		}
+		// Install all packages in a single command layer
+		installCmd := append([]string{"tlmgr", "install"}, m.LatexPackages...)
+		ctr = ctr.WithExec(installCmd)
 	}
 
-	// Add Quarto extensions
+	// Install Quarto extensions
 	for _, ext := range m.Extensions {
 		ctr = ctr.WithExec([]string{"quarto", "add", "--no-prompt", ext})
 	}
@@ -89,35 +79,41 @@ func (m *Quarto) container() *dagger.Container {
 	return m.Ctr
 }
 
-// Build runs the quarto render command exporting to a directory
+// Build compiles the Quarto project and returns the exported output directory.
 func (m *Quarto) Build(
-	// source directory.
+	// Source directory of the Quarto project.
 	source *dagger.Directory,
+	// Output directory name relative to source (e.g. "_output", "_site", "_book").
+	// +default="_output"
+	// +optional
+	outputDir string,
 ) *dagger.Directory {
+	workdir := "/work"
+	outPath := workdir + "/" + strings.TrimPrefix(outputDir, "/")
+
 	return m.container().
-		WithDirectory("/tmp", source).
-		WithWorkdir("/tmp").
-		WithExec([]string{"quarto", "render"}).Directory("/tmp/_output")
+		WithMountedDirectory(workdir, source).
+		WithWorkdir(workdir).
+		WithExec([]string{"quarto", "render"}).
+		Directory(outPath)
 }
 
-// Render runs the quarto render command
+// Render runs the quarto render command and returns the container.
 func (m *Quarto) Render(
-	// source directory.
+	// Source directory of the Quarto project.
 	source *dagger.Directory,
 ) *dagger.Container {
 	return m.container().
-		WithDirectory("/tmp", source).
-		WithWorkdir("/tmp").
+		WithMountedDirectory("/work", source).
+		WithWorkdir("/work").
 		WithExec([]string{"quarto", "render"})
 }
 
-// Cli runs the quarto cli
+// Cli executes an arbitrary command in the Quarto container.
 func (m *Quarto) Cli(
-	// commands to run
+	// Command string to execute (e.g. "quarto --version" or "quarto check").
 	args string,
 ) *dagger.Container {
-	parsedArgs := strings.Split(args, " ")
-
 	return m.container().
-		WithExec(parsedArgs)
+		WithExec([]string{"sh", "-c", args})
 }

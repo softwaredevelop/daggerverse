@@ -1,31 +1,19 @@
-// A generated module for Quartotest functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// Package main provides test suites for the Quarto Dagger module.
 package main
 
 import (
 	"context"
 	"dagger/quarto/test/internal/dagger"
-	"os"
-	"regexp"
+	"errors"
+	"strings"
 
 	"github.com/sourcegraph/conc/pool"
 )
 
-// Quartotest is a Dagger module that provides functions for running Quarto.
+// Quartotest provides tests for the Quarto module.
 type Quartotest struct{}
 
-// All runs all tests.
+// All runs all tests concurrently.
 func (m *Quartotest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
@@ -38,9 +26,8 @@ func (m *Quartotest) All(ctx context.Context) error {
 	return p.Wait()
 }
 
-// Extensions add quarto extensions to the container.
+// Extensions tests installing Quarto extensions.
 func (m *Quartotest) Extensions(ctx context.Context) error {
-
 	_, err := dag.Quarto(
 		dagger.QuartoOpts{
 			Extensions: []string{
@@ -50,18 +37,14 @@ func (m *Quartotest) Extensions(ctx context.Context) error {
 		},
 	).Cli("quarto --version").Sync(ctx)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-// Build runs the quarto build command.
+// Build tests compiling a document to PDF and verifies the output artifact.
 func (m *Quartotest) Build(ctx context.Context) error {
-
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	outputdata, err := dag.Quarto(
+
+	outputDir, err := dag.Quarto(
 		dagger.QuartoOpts{
 			Image: "ghcr.io/quarto-dev/quarto-full",
 		},
@@ -70,73 +53,48 @@ func (m *Quartotest) Build(ctx context.Context) error {
 		return err
 	}
 
-	outputDir := "./outputdata"
-	_, err = outputdata.Export(ctx, outputDir)
+	// Verify generated files directly inside the Dagger Directory (no host disk writes needed)
+	entries, err := outputDir.Entries(ctx)
 	if err != nil {
 		return err
 	}
 
-	files, err := os.ReadDir(outputDir)
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		re := regexp.MustCompile(`\.pdf$`)
-		if re.MatchString(file.Name()) {
-			return nil
+	for _, name := range entries {
+		if strings.HasSuffix(name, ".pdf") {
+			return nil // PDF successfully generated!
 		}
 	}
 
-	err = os.RemoveAll(outputDir)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return errors.New("quarto build succeeded, but no .pdf file was found in output directory")
 }
 
-// Render runs the quarto render command.
+// Render tests running the render process directly on the container.
 func (m *Quartotest) Render(ctx context.Context) error {
-
 	dir := dag.CurrentModule().Source().Directory("./testdata")
+
 	_, err := dag.Quarto(
 		dagger.QuartoOpts{
 			Image: "ghcr.io/quarto-dev/quarto-full",
 		},
 	).Render(dir).Sync(ctx)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-// FullVersion runs the quarto --version command.
+// FullVersion tests the CLI against the quarto-full image.
 func (m *Quartotest) FullVersion(ctx context.Context) error {
-
 	_, err := dag.Quarto(
 		dagger.QuartoOpts{
 			Image: "ghcr.io/quarto-dev/quarto-full",
 		},
 	).Cli("quarto --version").Sync(ctx)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-// CliVersion runs the quarto --version command.
+// Version tests the CLI against the default lightweight image.
 func (m *Quartotest) Version(ctx context.Context) error {
-
 	_, err := dag.Quarto().Cli("quarto --version").Sync(ctx)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
