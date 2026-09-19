@@ -1,0 +1,15 @@
+# revive/test/testdata/custom-revive.toml
+ignoreGeneratedHeader = false
+severity = "error"
+confidence = 0.8
+errorCode = 1
+warningCode = 0
+
+[rule.var-naming]
+disabled = true
+
+[rule.var-declaration]
+disabled = true
+
+[rule.package-comments]
+disabled = true
