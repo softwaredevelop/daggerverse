@@ -1,16 +1,7 @@
-// A generated module for Revive functions
+// A Dagger module for linting Go source code using Revive.
 //
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// Revive is a fast, configurable, extensible, and flexible linter for Go.
+// This module runs revive with exit status enforcement on target Go packages.
 package main
 
 import (
@@ -21,13 +12,15 @@ const (
 	defaultImageRepository = "ghcr.io/mgechev/revive:latest"
 )
 
-// Revive is a Dagger module that provides functions for running Revive linter
+// Revive provides functions for running the Revive linter.
 type Revive struct {
+	// +private
 	Image string
-	Ctr   *dagger.Container
+	// +private
+	Ctr *dagger.Container
 }
 
-// New creates a new instance of the Revive struct
+// New creates a new instance of the Revive struct.
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
@@ -38,7 +31,7 @@ func New(
 	}
 }
 
-// Container returns the underlying Dagger container
+// container returns the underlying Dagger container, lazily initialized.
 func (m *Revive) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
@@ -53,13 +46,30 @@ func (m *Revive) container() *dagger.Container {
 	return m.Ctr
 }
 
-// Check runs the revive command
+// Check runs the revive linter on the target Go packages.
 func (m *Revive) Check(
-	// Source directory
+	// Source directory containing the Go module.
 	source *dagger.Directory,
+	// Optional configuration file (e.g. revive.toml).
+	// +optional
+	config *dagger.File,
+	// Target Go packages or file pattern to check (defaults to "./...").
+	// +default="./..."
+	// +optional
+	packages string,
 ) *dagger.Container {
-	return m.container().
-		WithMountedDirectory("/tmp", source).
-		WithWorkdir("/tmp").
-		WithExec([]string{"/revive", "-set_exit_status", "./..."})
+	ctr := m.container().
+		WithMountedDirectory("/work", source).
+		WithWorkdir("/work")
+
+	args := []string{"/revive", "-set_exit_status"}
+
+	if config != nil {
+		ctr = ctr.WithFile("/etc/revive.toml", config)
+		args = append(args, "-config", "/etc/revive.toml")
+	}
+
+	args = append(args, packages)
+
+	return ctr.WithExec(args)
 }

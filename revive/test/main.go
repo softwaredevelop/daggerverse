@@ -1,49 +1,60 @@
-// A generated module for Revivetest functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// Package main provides test suites for the Revive Dagger module.
 package main
 
 import (
 	"context"
-	"regexp"
+	"dagger/revive/test/internal/dagger"
+	"errors"
+	"strings"
 
 	"github.com/sourcegraph/conc/pool"
 )
 
-// Revivetest is a Dagger module that provides functions for running Revive linter
+// Revivetest provides test functions for the Revive module.
 type Revivetest struct{}
 
-// All runs all tests.
+// All runs all tests concurrently.
 func (m *Revivetest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
-	p.Go(m.Check)
+	p.Go(m.CheckFailsByDefault)
+	p.Go(m.CheckWithConfig)
 
 	return p.Wait()
 }
 
-// Check runs the revive command.
-func (m *Revivetest) Check(ctx context.Context) error {
-
+// CheckFailsByDefault asserts that Revive fails on invalid code when using default rules.
+func (m *Revivetest) CheckFailsByDefault(ctx context.Context) error {
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Revive().Check(dir).Sync(ctx)
 
-	if err != nil {
-		re := regexp.MustCompile("exit code: 1")
-		if re.MatchString(err.Error()) {
-			return nil
-		}
+	_, err := dag.Revive().Check(dir).Sync(ctx)
+	if err == nil {
+		return errors.New("expected revive to fail on invalid Go code by default, but it succeeded")
+	}
+
+	// Must fail with exit code 1 due to lint violations
+	if strings.Contains(err.Error(), "exit code: 1") {
+		return nil
 	}
 
 	return err
+}
+
+// CheckWithConfig asserts that providing a custom revive.toml overrides rules and passes.
+func (m *Revivetest) CheckWithConfig(ctx context.Context) error {
+	dir := dag.CurrentModule().Source().Directory("./testdata")
+	// Read the renamed custom config file
+	configFile := dag.CurrentModule().Source().File("./testdata/custom-revive.toml")
+
+	// Pass the custom configuration which disables the failing rules
+	_, err := dag.Revive().Check(dir, dagger.ReviveCheckOpts{
+		Config: configFile,
+	}).Sync(ctx)
+
+	// Here we expect success (err == nil) because the custom config disabled the failing rules
+	if err != nil {
+		return errors.New("expected revive to pass with custom config, but it failed: " + err.Error())
+	}
+
+	return nil
 }
