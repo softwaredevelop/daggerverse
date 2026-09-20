@@ -9,8 +9,7 @@ import (
 )
 
 const (
-	defaultImageRepository = "pipelinecomponents/yamllint:latest"
-	defaultConfigData      = "{extends: default, rules: {line-length: {level: warning}}}"
+	defaultConfigData = "{extends: default, rules: {line-length: {level: warning}}}"
 )
 
 // Yamllint provides functions for checking YAML files.
@@ -24,6 +23,7 @@ type Yamllint struct {
 // New creates a new instance of the Yamllint struct.
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
+	// If not provided, a clean container built from official Alpine Linux with yamllint will be used.
 	// +optional
 	image string,
 ) *Yamllint {
@@ -38,12 +38,17 @@ func (m *Yamllint) container() *dagger.Container {
 		return m.Ctr
 	}
 
-	image := m.Image
-	if image == "" {
-		image = defaultImageRepository
+	// If the user provided a custom image, use it directly
+	if m.Image != "" {
+		m.Ctr = dag.Container().From(m.Image)
+		return m.Ctr
 	}
 
-	m.Ctr = dag.Container().From(image)
+	// Build a minimal, secure container on-the-fly from official Alpine Linux
+	m.Ctr = dag.Container().
+		From("alpine:latest").
+		WithExec([]string{"apk", "add", "--no-cache", "yamllint"})
+
 	return m.Ctr
 }
 
