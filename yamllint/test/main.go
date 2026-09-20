@@ -1,66 +1,78 @@
-// A generated module for Yamllinttest functions
-//
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// Package main provides test suites for the Yamllint Dagger module.
 package main
 
 import (
 	"context"
-	"regexp"
+	"dagger/yamllint/test/internal/dagger"
+	"errors"
+	"strings"
 
 	"github.com/sourcegraph/conc/pool"
 )
 
-// Yamllinttest is a module for checking YAML files.
+// Yamllinttest provides test functions for the Yamllint module.
 type Yamllinttest struct{}
 
-// All runs all tests.
+// All runs all tests concurrently.
 func (m *Yamllinttest) All(ctx context.Context) error {
 	p := pool.New().WithErrors().WithContext(ctx)
 
-	p.Go(m.CheckWithConfig)
 	p.Go(m.Check)
+	p.Go(m.CheckWithOptionalConfig)
+	p.Go(m.CheckWithConfig)
 
 	return p.Wait()
 }
 
-// CheckWithConfig runs the yamllint command with a configuration file.
-func (m *Yamllinttest) CheckWithConfig(ctx context.Context) error {
-
+// Check tests that yamllint detects syntax errors in bad.yaml by default.
+func (m *Yamllinttest) Check(ctx context.Context) error {
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	file := dag.CurrentModule().Source().File("./testdata/.config/.yamllint")
-	_, err := dag.Yamllint().CheckWithConfig(dir, file).Stderr(ctx)
 
-	if err != nil {
-		re := regexp.MustCompile("exit code: 123")
-		if re.MatchString(err.Error()) {
-			return nil
-		}
+	_, err := dag.Yamllint().Check(dir).Sync(ctx)
+	if err == nil {
+		return errors.New("expected yamllint to fail on invalid YAML, but it succeeded")
+	}
+
+	// yamllint exits with code 1 when syntax or lint errors are found
+	if strings.Contains(err.Error(), "exit code: 1") {
+		return nil
 	}
 
 	return err
 }
 
-// Check runs the revive command.
-func (m *Yamllinttest) Check(ctx context.Context) error {
-
+// CheckWithOptionalConfig tests the Check function with the optional config parameter.
+func (m *Yamllinttest) CheckWithOptionalConfig(ctx context.Context) error {
 	dir := dag.CurrentModule().Source().Directory("./testdata")
-	_, err := dag.Yamllint().Check(dir).Sync(ctx)
+	file := dag.CurrentModule().Source().File("./testdata/.config/.yamllint")
 
-	if err != nil {
-		re := regexp.MustCompile("exit code: 1")
-		if re.MatchString(err.Error()) {
-			return nil
-		}
+	_, err := dag.Yamllint().Check(dir, dagger.YamllintCheckOpts{
+		Config: file,
+	}).Sync(ctx)
+
+	if err == nil {
+		return errors.New("expected yamllint to fail on invalid YAML with optional config, but it succeeded")
+	}
+
+	if strings.Contains(err.Error(), "exit code: 1") {
+		return nil
+	}
+
+	return err
+}
+
+// CheckWithConfig tests the dedicated CheckWithConfig function with a mandatory config file.
+func (m *Yamllinttest) CheckWithConfig(ctx context.Context) error {
+	dir := dag.CurrentModule().Source().Directory("./testdata")
+	file := dag.CurrentModule().Source().File("./testdata/.config/.yamllint")
+
+	_, err := dag.Yamllint().CheckWithConfig(dir, file).Sync(ctx)
+	if err == nil {
+		return errors.New("expected CheckWithConfig to fail on invalid YAML, but it succeeded")
+	}
+
+	if strings.Contains(err.Error(), "exit code: 1") {
+		return nil
 	}
 
 	return err
