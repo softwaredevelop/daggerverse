@@ -1,16 +1,7 @@
-// A generated module for Shellcheck functions
+// A Dagger module for linting shell scripts using ShellCheck.
 //
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// ShellCheck is a static analysis tool for shell scripts (sh, bash, dash, ksh)
+// that finds bugs, syntax issues, and style warnings.
 package main
 
 import (
@@ -21,7 +12,7 @@ const (
 	defaultImageRepository = "koalaman/shellcheck-alpine:latest"
 )
 
-// Shellcheck is a module for checking shell scripts.
+// Shellcheck provides functions for checking shell scripts.
 type Shellcheck struct {
 	// +private
 	Image string
@@ -29,7 +20,7 @@ type Shellcheck struct {
 	Ctr *dagger.Container
 }
 
-// New creates a new instance of the Shellcheck struct
+// New creates a new instance of the Shellcheck struct.
 func New(
 	// Custom image reference in "repository:tag" format to use as a base container.
 	// +optional
@@ -40,7 +31,7 @@ func New(
 	}
 }
 
-// Container returns the underlying Dagger container
+// container returns the underlying Dagger container, lazily initialized.
 func (m *Shellcheck) container() *dagger.Container {
 	if m.Ctr != nil {
 		return m.Ctr
@@ -55,13 +46,60 @@ func (m *Shellcheck) container() *dagger.Container {
 	return m.Ctr
 }
 
-// Check runs the shellcheck command.
+// Check runs shellcheck on all .sh and .bash files in the source directory.
+// If an optional config file is provided, it is placed in the working directory as .shellcheckrc.
 func (m *Shellcheck) Check(
-	// source is an optional argument that specifies a directory.
+	// Source directory containing shell scripts.
 	source *dagger.Directory,
+	// Minimum severity of errors to report (error, warning, info, style).
+	// +optional
+	severity string,
+	// Optional shellcheck configuration file (.shellcheckrc).
+	// +optional
+	config *dagger.File,
 ) *dagger.Container {
-	return m.container().
-		WithMountedDirectory("/tmp", source).
-		WithWorkdir("/tmp").
-		WithExec([]string{"sh", "-c", "find . -type f -name '*.sh' -print0 | xargs -0 shellcheck"})
+	ctr := m.container().
+		WithMountedDirectory("/work", source).
+		WithWorkdir("/work")
+
+	if config != nil {
+		ctr = ctr.WithFile("/work/.shellcheckrc", config).
+			WithFile("/root/.shellcheckrc", config)
+	}
+
+	severityArg := ""
+	if severity != "" {
+		severityArg = "--severity=" + severity + " "
+	}
+
+	cmd := "find . -type f \\( -name '*.sh' -o -name '*.bash' \\) -print0 | xargs -0 -r shellcheck " + severityArg
+
+	return ctr.WithExec([]string{"sh", "-c", cmd})
+}
+
+// CheckWithConfig runs shellcheck explicitly using the provided configuration file via --rcfile.
+// The configuration file is mandatory for this function.
+func (m *Shellcheck) CheckWithConfig(
+	// Source directory containing shell scripts.
+	source *dagger.Directory,
+	// Mandatory configuration file for shellcheck.
+	file *dagger.File,
+	// Minimum severity of errors to report (error, warning, info, style).
+	// +optional
+	severity string,
+) *dagger.Container {
+	ctr := m.container().
+		WithMountedDirectory("/work", source).
+		WithWorkdir("/work").
+		WithFile("/etc/shellcheckrc", file)
+
+	severityArg := ""
+	if severity != "" {
+		severityArg = "--severity=" + severity + " "
+	}
+
+	// Explicitly pass --rcfile to force using the provided configuration file
+	cmd := "find . -type f \\( -name '*.sh' -o -name '*.bash' \\) -print0 | xargs -0 -r shellcheck --rcfile=/etc/shellcheckrc " + severityArg
+
+	return ctr.WithExec([]string{"sh", "-c", cmd})
 }
